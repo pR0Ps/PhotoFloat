@@ -8,12 +8,14 @@ def set_cache_path_base(base):
 	trim_base.base = base
 def untrim_base(path):
 	return os.path.join(trim_base.base, path)
-def trim_base(path):
-	if path.startswith(trim_base.base):
-		path = path[len(trim_base.base):]
+def trim_base_custom(path, base):
+	if path.startswith(base):
+		path = path[len(base):]
 	if path.startswith('/'):
 		path = path[1:]
 	return path
+def trim_base(path):
+	return trim_base_custom(path, trim_base.base)
 def cache_base(path):
 	path = trim_base(path).replace('/', '-').replace(' ', '_')
 	if len(path) == 0:
@@ -88,14 +90,13 @@ class Album(object):
 	def to_dict(self, cripple=True):
 		self._sort()
 		if cripple:
-			subalbums = [ { "path": sub.path, "date": sub.date } for sub in self._albums ]
+			subalbums = [ { "path": trim_base_custom(sub.path, self._path), "date": sub.date } for sub in self._albums ]
 		else:
 			subalbums = self._albums
 		return { "path": self.path, "date": self.date, "albums": subalbums, "photos": self._photos }
 	def photo_from_path(self, path):
 		for photo in self._photos:
 			if trim_base(path) == photo._path:
-				print "cache hit %s" % path
 				return photo
 		return None
 	
