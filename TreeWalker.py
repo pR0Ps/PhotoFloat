@@ -1,5 +1,6 @@
 import os
 import os.path
+from datetime import datetime
 from PhotoAlbum import Photo, Album, json_cache, set_cache_path_base
 
 class TreeWalker:
@@ -14,17 +15,27 @@ class TreeWalker:
 	def walk(self, path):
 		cache = os.path.join(self.cache_path, json_cache(path))
 		cached = False
-		if os.path.exists(cache) and os.path.getmtime(path) <= os.path.getmtime(cache):
-			album = Album.from_cache(cache)
-			cached = True
-		else:
+		cached_album = None
+		if os.path.exists(cache):
+			cached_album = Album.from_cache(cache)
+			if os.path.getmtime(path) <= os.path.getmtime(cache):
+				cached = True
+				album = cached_album
+		if not cached:
 			album = Album(path)
 		for entry in os.listdir(path):
 			entry = os.path.join(path, entry)
 			if os.path.isdir(entry):
 				album.add_album(self.walk(entry))
 			elif not cached and os.path.isfile(entry):
-				photo = Photo(entry)
+				cache_hit = False
+				if cached_album:
+					cached_photo = cached_album.photo_from_path(entry)
+					if cached_photo and datetime.fromtimestamp(os.path.getmtime(entry)) <= cached_photo.attributes["DateTimeFile"]:
+						cache_hit = True
+						photo = cached_photo
+				if not cache_hit:
+					photo = Photo(entry, self.cache_path)
 				if photo.is_valid:
 					self.all_photos.append(photo)
 					album.add_photo(photo)
