@@ -198,7 +198,10 @@ class Photo(object):
 		else:
 			return self._attributes["DateTimeFile"]
 	def __cmp__(self, other):
-		return cmp(self.date, other.date)
+		date_compare = cmp(self.date, other.date)
+		if date_compare == 0:
+			return cmp(self.name, other.name)
+		return date_compare
 	@property
 	def attributes(self):
 		return self._attributes
