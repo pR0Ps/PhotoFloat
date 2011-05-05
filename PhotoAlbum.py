@@ -140,6 +140,7 @@ class Photo(object):
 		else:
 			suffix = str(size)
 		thumb_path = os.path.join(thumb_path, image_cache(self._path, suffix))
+		print "Thumbing %s" % thumb_path
 		if os.path.exists(thumb_path) and datetime.fromtimestamp(os.path.getmtime(thumb_path)) >= self._attributes["DateTimeFile"]:
 			return
 		image = image.copy()
@@ -159,7 +160,10 @@ class Photo(object):
 		image.save(thumb_path, "JPEG")
 		
 	def _thumbnails(self, image, thumb_path):
-		orientation = self._attributes["Orientation"]
+		if "Orientation" in self._attributes:
+			orientation = self._attributes["Orientation"]
+		else:
+			orientation = 1
 		mirror = image
 		if orientation == 2:
 			# Vertical Mirror
@@ -214,7 +218,7 @@ class Photo(object):
 					dictionary[key] = datetime.strptime(dictionary[key], "%a %b %d %H:%M:%S %Y")
 				except:
 					pass
-		return Photo(path, dictionary)
+		return Photo(path, None, dictionary)
 	def to_dict(self):
 		photo = { "name": self.name, "date": self.date }
 		photo.update(self.attributes)
