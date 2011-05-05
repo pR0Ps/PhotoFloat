@@ -12,8 +12,6 @@ def trim_base(path):
 	if path.startswith('/'):
 		path = path[1:]
 	return path
-def untrim_base(path):
-	return os.path.join(trim_base.base, path)
 def cache_base(path):
 	path = trim_base(path).replace('/', '-').replace(' ', '_')
 	if len(path) == 0:
@@ -97,11 +95,13 @@ class Photo(object):
 	def __init__(self, path, attributes=None):
 		self._path = trim_base(path)
 		self.is_valid = True
-		if attributes is not None:
+		mtime = datetime.fromtimestamp(os.path.getmtime(path))
+		if attributes is not None and attributes["FileTime"] >= mtime:
 			self._attributes = attributes
 			return
-		else:
-			self._attributes = {}
+		self._attributes = {}
+		self._attributes["FileTime"] = mtime
+		
 		try:
 			i = Image.open(path)
 		except:
@@ -117,21 +117,27 @@ class Photo(object):
 				if not isinstance(decoded, int) and decoded not in ['JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'FileSource', 'MakerNote', 'UserComment', 'ImageDescription', 'ComponentsConfiguration']:
 					if isinstance(value, str):
 						value = value.strip()
+						if decoded.startswith("DateTime"):
+							try:
+								value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
+							except:
+								pass			
 					self._attributes[decoded] = value
 	@property
 	def name(self):
 		return os.path.basename(self._path)
 	def __str__(self):
 		return self.name
-	@property
-	def cache_paths(self):
-		return [image_cache(self.path, size) for size in [100, 640, 1024]]
+	def cache_path(self, size):
+		return image_cache(self.path, size)
 	@property
 	def date(self):
-		if "DateTime" in self._attributes:
-			return datetime.strptime(self._attributes["DateTime"], '%Y:%m:%d %H:%M:%S')
+		if "DateTimeOriginal" in self._attributes:
+			return self._attributes["DateTimeOriginal"]
+		elif "DateTime" in self._attributes:
+			return self._attributes["DateTime"]
 		else:
-			return datetime.fromtimestamp(os.path.getmtime(untrim_base(self._path)))
+			return self._attributes["FileTime"]
 	def __cmp__(self, other):
 		return cmp(self.date, other.date)
 	@property

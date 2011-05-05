@@ -32,4 +32,4 @@ class TreeWalker:
 		self.all_albums.append(album)
 		return album
 	def remove_stale(self):
-		pass
+		pass #TODO: remove left over caches
