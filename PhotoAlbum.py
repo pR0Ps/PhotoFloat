@@ -156,7 +156,6 @@ class Photo(object):
 			image = image.crop((left, top, right, bottom))
 		image.thumbnail((size, size), Image.ANTIALIAS)
 		image.save(thumb_path, "JPEG")
-		print "saving %s" % thumb_path
 		
 	def _thumbnails(self, image, thumb_path):
 		orientation = self._attributes["Orientation"]
@@ -182,7 +181,7 @@ class Photo(object):
 		elif orientation == 8:
 			# Rotation 90
 			mirror = image.transpose(Image.ROTATE_90)
-		self._thumbnail(mirror, thumb_path, 100, True)
+		self._thumbnail(mirror, thumb_path, 150, True)
 		self._thumbnail(mirror, thumb_path, 640)
 		self._thumbnail(mirror, thumb_path, 1024)
 	@property
