@@ -2,4 +2,4 @@
 
 from TreeWalker import TreeWalker
 
-walker = TreeWalker("/home/zx2c4/Pictures", "./cache")
+walker = TreeWalker("./test", "./cache")

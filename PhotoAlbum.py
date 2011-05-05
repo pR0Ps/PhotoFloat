@@ -1,30 +1,9 @@
+from CachePath import *
 from datetime import datetime
 import json
 import os.path
 from PIL import Image
 from PIL.ExifTags import TAGS
-
-def set_cache_path_base(base):
-	trim_base.base = base
-def untrim_base(path):
-	return os.path.join(trim_base.base, path)
-def trim_base_custom(path, base):
-	if path.startswith(base):
-		path = path[len(base):]
-	if path.startswith('/'):
-		path = path[1:]
-	return path
-def trim_base(path):
-	return trim_base_custom(path, trim_base.base)
-def cache_base(path):
-	path = trim_base(path).replace('/', '-').replace(' ', '_')
-	if len(path) == 0:
-		path = "root"
-	return path
-def json_cache(path):
-	return cache_base(path) + ".json"
-def image_cache(path, suffix):
-	return cache_base(path) + "_" + suffix + ".jpg"
 
 class Album(object):
 	def __init__(self, path):
@@ -33,6 +12,12 @@ class Album(object):
 		self._albums = list()
 		self._photos_sorted = True
 		self._albums_sorted = True
+	@property
+	def photos(self):
+		return self._photos
+	@property
+	def albums(self):
+		return self._albums
 	@property
 	def path(self):
 		return self._path
@@ -101,10 +86,15 @@ class Album(object):
 		return None
 	
 class Photo(object):
+	thumb_sizes = [ (150, True), (640, False), (1024, False) ]
 	def __init__(self, path, thumb_path=None, attributes=None):
 		self._path = trim_base(path)
 		self.is_valid = True
-		mtime = datetime.fromtimestamp(os.path.getmtime(path))
+		try:
+			mtime = file_mtime(path)
+		except:
+			self.is_valid = False
+			return
 		if attributes is not None and attributes["DateTimeFile"] >= mtime:
 			self._attributes = attributes
 			return
@@ -123,6 +113,8 @@ class Photo(object):
 			info = image._getexif()
 		except:
 			return
+		if not info:
+			return
 		for tag, value in info.items():
 			decoded = TAGS.get(tag, tag)
 			if not isinstance(decoded, int) and decoded not in ['JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'FileSource', 'MakerNote', 'UserComment', 'ImageDescription', 'ComponentsConfiguration']:
@@ -135,13 +127,9 @@ class Photo(object):
 							pass			
 				self._attributes[decoded] = value
 	def _thumbnail(self, image, thumb_path, size, square=False):
-		if square:
-			suffix = str(size) + "s"
-		else:
-			suffix = str(size)
-		thumb_path = os.path.join(thumb_path, image_cache(self._path, suffix))
+		thumb_path = os.path.join(thumb_path, image_cache(self._path, size, square))
 		print "Thumbing %s" % thumb_path
-		if os.path.exists(thumb_path) and datetime.fromtimestamp(os.path.getmtime(thumb_path)) >= self._attributes["DateTimeFile"]:
+		if os.path.exists(thumb_path) and file_mtime(thumb_path) >= self._attributes["DateTimeFile"]:
 			return
 		image = image.copy()
 		if square:
@@ -157,7 +145,10 @@ class Photo(object):
 				bottom = image.size[1] - ((image.size[1] - image.size[0]) / 2)
 			image = image.crop((left, top, right, bottom))
 		image.thumbnail((size, size), Image.ANTIALIAS)
-		image.save(thumb_path, "JPEG")
+		try:
+			image.save(thumb_path, "JPEG")
+		except:
+			os.path.unlink(thumb_path)
 		
 	def _thumbnails(self, image, thumb_path):
 		if "Orientation" in self._attributes:
@@ -186,16 +177,20 @@ class Photo(object):
 		elif orientation == 8:
 			# Rotation 90
 			mirror = image.transpose(Image.ROTATE_90)
-		self._thumbnail(mirror, thumb_path, 150, True)
-		self._thumbnail(mirror, thumb_path, 640)
-		self._thumbnail(mirror, thumb_path, 1024)
+		for size in Photo.thumb_sizes:
+			self._thumbnail(mirror, thumb_path, size[0], size[1])
 	@property
 	def name(self):
 		return os.path.basename(self._path)
 	def __str__(self):
 		return self.name
 	@property
+	def image_caches(self):
+		return [image_cache(self._path, size[0], size[1]) for size in Photo.thumb_sizes]
+	@property
 	def date(self):
+		if not self.is_valid:
+			return datetime(1900, 1, 1)
 		if "DateTimeOriginal" in self._attributes:
 			return self._attributes["DateTimeOriginal"]
 		elif "DateTime" in self._attributes:
