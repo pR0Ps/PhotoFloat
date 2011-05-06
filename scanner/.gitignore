@@ -1,3 +1,4 @@
+upload.sh
 *.pyc
 cache/*
 test/*

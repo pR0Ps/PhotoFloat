@@ -110,6 +110,7 @@ class Photo(object):
 		self._metadata(image)
 		self._thumbnails(image, thumb_path)
 	def _metadata(self, image):
+		self._attributes["size"] = image.size
 		try:
 			info = image._getexif()
 		except:
@@ -125,8 +126,11 @@ class Photo(object):
 						try:
 							value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
 						except:
-							pass			
+							pass
 				self._attributes[decoded] = value
+		
+		if "Orientation" in self._attributes and self._attributes["Orientation"] in range(5, 9):
+			self._attributes["size"] = (self._attributes["size"][1], self._attributes["size"][0])
 	def _thumbnail(self, image, thumb_path, size, square=False):
 		thumb_path = os.path.join(thumb_path, image_cache(self._path, size, square))
 		print "Thumbing %s" % thumb_path

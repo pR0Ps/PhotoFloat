@@ -1,0 +1,89 @@
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #222222;
+	font-family: "LM Roman", "Georgia", "Palatino Linotype", "Palatino", "Times New Roman", "Times", serif;
+	color: #FFFFFF;
+}
+a {
+	color: #88EE44;
+	text-decoration: none;
+}
+a:hover {
+	color: #DDDDDD;
+}
+#title {
+	position: absolute;
+	top: 0;
+	padding: 0.4em;
+	font-weight: bold;
+	font-size: 1.2em;
+}
+#loading {
+	display: none;
+}
+
+
+#album-view {
+	position: absolute;
+	top: 2.5em;
+	padding: 1em;
+}
+#thumbs {
+	line-height: 0;
+}
+
+#thumbs img {
+	border: 0;
+	margin: 0;
+	padding: 0;
+}
+#subalbums {
+}
+.album-button {
+	float: left;
+	display: block;
+	width: 150px;
+	height: 150px;
+	margin-right: 10px;
+	margin-bottom: 5px;
+	margin-top: 5px;
+	text-align: center;
+	font-style: italic;
+	border: 1px #86A1B6 dotted;
+}
+
+
+#next, #back {
+	position: absolute;
+	width: auto;
+	font-size: 2.5em;
+	line-height: 0;
+	padding-top: 0.3em;
+}
+#back {
+	left: 0;
+}
+#next {
+	right: 0;
+}
+#photo {
+	border: 0;
+}
+#photo-view {
+	position: absolute;
+	bottom: 150px;
+	top: 2.5em;
+	margin: 0 auto;
+}
+.photo-view-container {
+	position: absolute;
+	height: 150px;
+	width: 100%;
+	bottom: 0;
+	top: auto !important;
+	overflow-x: auto;
+	overflow-y: hidden;
+	white-space: nowrap;
+	padding: 0 !important;
+}
