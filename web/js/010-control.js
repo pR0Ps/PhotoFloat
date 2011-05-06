@@ -101,7 +101,8 @@ $(document).ready(function() {
 			.attr("width", width).attr("height", height)
 			.attr("src", imagePath(current_photo.name, current_album.path, maxSize, false))
 			.attr("alt", current_photo.name)
-			.attr("title", current_photo.name);
+			.attr("title", current_photo.name)
+			.load(function() { $(this).css("width", "auto").css("height", "100%"); });
 		var nextLink = "#" + current_album_cache + "/" + cachePath(current_album.photos[
 			(current_photo_index + 1 >= current_album.photos.length) ? 0 : (current_photo_index + 1)
 		].name);
