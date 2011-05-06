@@ -73,7 +73,7 @@ $(document).ready(function() {
 		else
 			$("#subalbums-title").hide();
 		var subalbums = "";
-		for (var i = 0; i < current_album.albums.length; ++i)
+		for (var i = current_album.albums.length - 1; i >= 0; --i)
 			subalbums += "<a href=\"#" + cachePath(current_album.path + "/" + current_album.albums[i].path) + "\"><div class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
 		$("#subalbums").html(subalbums);
 		
