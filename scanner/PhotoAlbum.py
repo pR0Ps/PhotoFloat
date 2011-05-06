@@ -146,6 +146,7 @@ class Photo(object):
 				right = image.size[0]
 				bottom = image.size[1] - ((image.size[1] - image.size[0]) / 2)
 			image = image.crop((left, top, right, bottom))
+			gc.collect()
 		image.thumbnail((size, size), Image.ANTIALIAS)
 		try:
 			image.save(thumb_path, "JPEG")

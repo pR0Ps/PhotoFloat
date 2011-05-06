@@ -11,18 +11,24 @@ $(document).ready(function() {
 		return "cache/" + cachePath(path + "/" + image + "_" + suffix + ".jpg");
 	}
 	function loadAlbum(path) {
+		if (path in album_cache) {
+			albumLoaded(album_cache[path]);
+			return;
+		}
 		$.ajax({
 			type: "GET",
 			url: "cache/" + path + ".json",
 			error: function() { $(document.body).html("Couldn't fetch it."); },
-			success: function(album) {
-				current_album = album;
-				if (current_image_cache != null)
-					showPhoto();
-				else
-					showAlbum();
-			}
+			success: albumLoaded
 		});
+	}
+	function albumLoaded(album) {
+		album_cache[cachePath(album.path)] = album;
+		current_album = album;
+		if (current_image_cache != null)
+			showPhoto();
+		else if (cachePath(album.path) == current_album_cache)
+			showAlbum();
 	}
 	function showAlbum() {
 		$("html, body").animate({ scrollTop: 0 }, "slow");
@@ -73,6 +79,7 @@ $(document).ready(function() {
 	var current_album_cache = "";
 	var current_image_cache = "";
 	var current_album = null;
+	var album_cache = new Array();
 	$(window).hashchange(function() {
 		var new_album_cache = location.hash.substring(1);
 		var index = new_album_cache.lastIndexOf("/");
