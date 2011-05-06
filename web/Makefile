@@ -4,8 +4,8 @@ CSS_DIR = css
 JS_MIN = $(JS_DIR)/scripts.min.js
 CSS_MIN = $(CSS_DIR)/styles.min.css
 
-JS_MIN_FILES := $(patsubst %.js, %.min.js, $(filter-out %.min.js, $(wildcard $(JS_DIR)/*.js)))
-CSS_MIN_FILES := $(patsubst %.css, %.min.css, $(filter-out %.min.css, $(wildcard $(CSS_DIR)/*.css)))
+JS_MIN_FILES := $(sort $(patsubst %.js, %.min.js, $(filter-out %.min.js, $(wildcard $(JS_DIR)/*.js))))
+CSS_MIN_FILES := $(sort $(patsubst %.css, %.min.css, $(filter-out %.min.css, $(wildcard $(CSS_DIR)/*.css))))
 
 JS_COMPILER = utils/google-compiler --warning_level QUIET
 CSS_COMPILER = utils/yuicompressor --type css
