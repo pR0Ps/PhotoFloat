@@ -4,7 +4,23 @@ $(document).ready(function() {
 			return "root";
 		if (path[0] == '/')
 			path = path.substring(1);
-		return path.replace(/ /g, "_").replace(/\//g, "-");
+		path = path
+			.replace(/ /g, "_")
+			.replace(/\//g, "-")
+			.replace(/\(/g, "")
+			.replace(/\)/g, "")
+			.replace(/#/g, "")
+			.replace(/\[/g, "")
+			.replace(/\]/g, "")
+			.replace(/"/g, "")
+			.replace(/'/g, "")
+			.replace(/_-_/g, "-")
+			.toLowerCase();
+		while (path.indexOf("--") != -1)
+			path = path.replace(/--/g, "-");
+		while (path.indexOf("__") != -1)
+			path = path.replace(/__/g, "_");
+		return path;
 	}
 	function imagePath(image, path, size, square) {
 		var suffix;
@@ -13,6 +29,9 @@ $(document).ready(function() {
 		else
 			suffix = size.toString();
 		return "cache/" + cachePath(path + "/" + image + "_" + suffix + ".jpg");
+	}
+	function escapeId(id) {
+		return id.replace(/\./g, "\\.").replace(/,/g, "\\,");
 	}
 	function loadAlbum() {
 		if (current_album_cache in album_cache) {
@@ -73,9 +92,20 @@ $(document).ready(function() {
 		else
 			$("#subalbums-title").hide();
 		var subalbums = "";
-		for (var i = current_album.albums.length - 1; i >= 0; --i)
-			subalbums += "<a href=\"#" + cachePath(current_album.path + "/" + current_album.albums[i].path) + "\"><div class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
+		var thumbFinderList = new Array();
+		for (var i = current_album.albums.length - 1; i >= 0; --i) {
+			var path = cachePath(current_album.path + "/" + current_album.albums[i].path);
+			var id = "album-" + path;
+			subalbums += "<a href=\"#" + path + "\"><div id=\"" + id + "\" class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
+			thumbFinderList.push({ path: path, id: escapeId(id) });
+		}
 		$("#subalbums").html(subalbums);
+		for (var i = 0; i < thumbFinderList.length; ++i)
+			(function(thumb) {
+				albumThumbFinder(thumb.path, function(photo, album) {
+					$("#" + thumb.id).css("background-image", "url(" + imagePath(photo.name, album.path, 150, true) + ")");
+				});
+			})(thumbFinderList[i]);
 		
 		$("#album-view").removeClass("photo-view-container");
 		$("#subalbums").show();
@@ -115,7 +145,7 @@ $(document).ready(function() {
 		$("#album-view").addClass("photo-view-container");
 		$("#subalbums").hide();
 		$("#photo-view").show();
-		var thumb = $("#thumb-" + current_photo_cache.replace(/\./g, "\\."));
+		var thumb = $("#thumb-" + escapeId(current_photo_cache));
 		var scroller = $("#album-view");
 		scroller.stop();
 		scroller.animate({ scrollLeft: thumb.position().left + scroller.scrollLeft() - scroller.width() / 2 + thumb.width() / 2 }, "slow");
@@ -132,6 +162,34 @@ $(document).ready(function() {
 		}
 		current_photo = current_album.photos[current_photo_index];
 	}
+	
+	function albumForThumbIteration(album, callback) {
+		album_cache[cachePath(album.path)] = album;
+		var index = Math.floor(Math.random() * (album.photos.length + album.albums.length));
+		if (index >= album.photos.length) {
+			index -= album.photos.length;
+			fetchAlbumForThumb(cachePath(album.path + "/" + album.albums[index].path), function(fetchedAlbum) {
+				albumForThumbIteration(fetchedAlbum, callback);
+			});
+		} else
+			callback(album.photos[index], album);
+	}
+	function fetchAlbumForThumb(album, callback) {
+		if (album in album_cache) {
+			callback(album_cache[album]);
+			return;
+		}
+		$.ajax({
+			type: "GET",
+			url: "cache/" + album + ".json",
+			error: function() { $(document.body).html("Couldn't fetch it."); },
+			success: callback
+		});
+	}
+	function albumThumbFinder(album, callback) {
+		fetchAlbumForThumb(album, function(fetchedAlbum) { albumForThumbIteration(fetchedAlbum, callback); });
+	}
+	
 	var current_album_cache = null;
 	var current_photo_cache = null;
 	var current_album = null;
@@ -173,4 +231,5 @@ $(document).ready(function() {
 		}
 		return true;
 	});
+	alert("Hello. This is an obnoxious alert message. PhotoFloat is a work in progress. There are many kinks to be worked out.\n\nTODO:\n* display EXIF info in json\n* link to hi-res\n* sizing bugs\n* random thumbnail for album links\n\nSuggestions?");
 });
