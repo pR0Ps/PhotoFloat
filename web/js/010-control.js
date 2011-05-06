@@ -87,7 +87,7 @@ $(document).ready(function() {
 			$(document.body).html("Wrong picture.");
 			return;
 		}
-		var maxSize = 640;
+		var maxSize = 800;
 		var width = current_photo.size[0];
 		var height = current_photo.size[1];
 		if (width > height) {
