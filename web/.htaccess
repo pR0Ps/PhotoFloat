@@ -1,0 +1,4 @@
+AddOutputFilterByType DEFLATE text/text text/html text/plain text/xml text/css application/x-javascript application/javascript application/json
+<FilesMatch "(Makefile)|(.*\.pyc)">
+	deny from all
+</FilesMatch>

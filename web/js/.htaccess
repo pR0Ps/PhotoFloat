@@ -1,0 +1,3 @@
+<FilesMatch "(?<!min)\.js">
+	deny from all
+</FilesMatch>

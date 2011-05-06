@@ -1,0 +1,3 @@
+<FilesMatch "(?<!min)\.css">
+        deny from all
+</FilesMatch>
