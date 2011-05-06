@@ -43,11 +43,9 @@ a:hover {
 .album-button {
 	float: left;
 	display: block;
-	width: 150px;
-	height: 150px;
-	margin-right: 10px;
-	margin-bottom: 5px;
-	margin-top: 5px;
+	width: 138px;
+	height: 138px;
+	margin: 6px;
 	text-align: center;
 	font-style: italic;
 	border: 1px #86A1B6 dotted;
@@ -59,13 +57,13 @@ a:hover {
 	width: auto;
 	font-size: 2.5em;
 	line-height: 0;
-	padding-top: 0.3em;
+	top: 40%;
 }
 #back {
-	left: 0;
+	left: .5em;
 }
 #next {
-	right: 0;
+	right: .5em;
 }
 #photo {
 	border: 0;
@@ -74,7 +72,11 @@ a:hover {
 	position: absolute;
 	bottom: 150px;
 	top: 2.5em;
-	margin: 0 auto;
+	overflow: hidden;
+	margin-bottom: 0.5em;
+	left: 0;
+	right: 0;
+	text-align: center;
 }
 .photo-view-container {
 	position: absolute;

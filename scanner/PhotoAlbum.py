@@ -44,7 +44,7 @@ class Album(object):
 		self._photos_sorted = False
 	def add_album(self, album):
 		self._albums.append(album)
-		self._photos_sorted = False
+		self._albums_sorted = False
 	def _sort(self):
 		if not self._photos_sorted:
 			self._photos.sort()
