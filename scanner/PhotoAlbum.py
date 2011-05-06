@@ -4,6 +4,7 @@ import json
 import os.path
 from PIL import Image
 from PIL.ExifTags import TAGS
+import gc
 
 class Album(object):
 	def __init__(self, path):
@@ -127,6 +128,7 @@ class Photo(object):
 							pass			
 				self._attributes[decoded] = value
 	def _thumbnail(self, image, thumb_path, size, square=False):
+		gc.collect()
 		thumb_path = os.path.join(thumb_path, image_cache(self._path, size, square))
 		print "Thumbing %s" % thumb_path
 		if os.path.exists(thumb_path) and file_mtime(thumb_path) >= self._attributes["DateTimeFile"]:

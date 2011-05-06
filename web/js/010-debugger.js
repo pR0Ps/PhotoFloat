@@ -66,7 +66,7 @@ $(document).ready(function() {
 			$(document.body).html("Wrong picture.");
 			return;
 		}
-		$("#photo").html("<a href=\"javascript:history.back(-1)\"><img src=\"" + imagePath(current_album.photos[index].name, current_album.path, 640, false) + "\"></a>");
+		$("#photo").html("<a href=\"#" + current_album_cache + "\"><img src=\"" + imagePath(current_album.photos[index].name, current_album.path, 640, false) + "\"></a>");
 		$("#album").fadeOut();
 		$("#photo").fadeIn();
 	}
