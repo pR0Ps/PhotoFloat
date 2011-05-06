@@ -231,5 +231,4 @@ $(document).ready(function() {
 		}
 		return true;
 	});
-	alert("Hello. This is an obnoxious alert message. PhotoFloat is a work in progress. There are many kinks to be worked out.\n\nTODO:\n* display EXIF info in json\n* link to hi-res\n* sizing bugs\n* random thumbnail for album links\n\nSuggestions?");
 });
