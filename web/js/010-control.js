@@ -150,7 +150,22 @@ $(document).ready(function() {
 			(current_photo_index - 1 < 0) ? (current_album.photos.length - 1) : (current_photo_index - 1)
 		].name));
 		$("#original-link").attr("target", "_blank").attr("href", "albums/" + current_album.path + "/" + current_photo.name);
-		$("#metadata-link").attr("href", "javascript:alert('Coming soon...')");
+
+		var text = "<table>";
+		if (current_photo.make != undefined) text += "<tr><td>Camera Maker</td><td>" + current_photo.make + "</td></tr>";
+		if (current_photo.model != undefined) text += "<tr><td>Camera Model</td><td>" + current_photo.model + "</td></tr>";
+		if (current_photo.date != undefined) text += "<tr><td>Time Taken</td><td>" + current_photo.date + "</td></tr>";
+		if (current_photo.size != undefined) text += "<tr><td>Resolution</td><td>" + current_photo.size[0] + " x " + current_photo.size[1] + "</td></tr>";
+		if (current_photo.shutterSpeed != undefined) text += "<tr><td>Shutter Speed</td><td>" + current_photo.shutterSpeed + "</td></tr>";
+		if (current_photo.aperture != undefined) text += "<tr><td>Aperture</td><td>" + current_photo.aperture + "</td></tr>";
+		if (current_photo.focalLength != undefined) text += "<tr><td>Focal Length</td><td>" + current_photo.focalLength + "</td></tr>";
+		if (current_photo.iso != undefined) text += "<tr><td>ISO Sensitivity</td><td>" + current_photo.iso + "</td></tr>";
+		if (current_photo.exposureCompenstaion != undefined) text += "<tr><td>Exposure Compenstation</td><td>" + current_photo.exposureCompenstaion + "</td></tr>";
+		if (current_photo.meteringMode != undefined) text += "<tr><td>Metering Mode</td><td>" + current_photo.meteringMode + "</td></tr>";
+		if (current_photo.flashFired != undefined) text += "<tr><td>Flash Fired</td><td>" + current_photo.flashFired + "</td></tr>";
+		if (current_photo.orientation != undefined) text += "<tr><td>Orientation</td><td>" + current_photo.orientation + "</td></tr>";
+		text += "</table>";
+		$("#metadata").html(text);
 		
 		$("#album-view").addClass("photo-view-container");
 		$("#subalbums").hide();
@@ -252,5 +267,21 @@ $(document).ready(function() {
 	});
 	$("#photo-box").mouseleave(function() {
 		$("#photo-links").stop().fadeOut("slow");
+	});
+	$("#metadata-link").click(function() {
+		if (!$("#metadata").is(":visible"))
+			$("#metadata").stop()
+				.css("height", 0)
+				.css("padding-top", 0)
+				.css("padding-bottom", 0)
+				.show()
+				.animate({ height: 16 * 12, paddingTop: 3, paddingBottom: 3 }, "slow", function() {
+					$("#metadata-link").text($("#metadata-link").text().replace("show", "hide"));
+				});
+		else
+			$("#metadata").stop().animate({ height: 0, paddingTop: 0, paddingBottom: 0 }, "slow", function() {
+				$(this).hide();
+				$("#metadata-link").text($("#metadata-link").text().replace("hide", "show"));
+			});
 	});
 });
