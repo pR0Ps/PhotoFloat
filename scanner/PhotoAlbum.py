@@ -112,11 +112,11 @@ class Photo(object):
 		except:
 			self.is_valid = False
 			return
-		if attributes is not None and attributes["DateTimeFile"] >= mtime:
+		if attributes is not None and attributes["dateTimeFile"] >= mtime:
 			self._attributes = attributes
 			return
 		self._attributes = {}
-		self._attributes["DateTimeFile"] = mtime
+		self._attributes["dateTimeFile"] = mtime
 		
 		try:
 			image = Image.open(path)
@@ -127,30 +127,76 @@ class Photo(object):
 		self._thumbnails(image, thumb_path)
 	def _metadata(self, image):
 		self._attributes["size"] = image.size
+		self._orientation = 1
 		try:
 			info = image._getexif()
 		except:
 			return
 		if not info:
 			return
+		
+		exif = {}
 		for tag, value in info.items():
 			decoded = TAGS.get(tag, tag)
-			if not isinstance(decoded, int) and decoded not in ['JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'FileSource', 'MakerNote', 'UserComment', 'ImageDescription', 'ComponentsConfiguration']:
-				if isinstance(value, str):
-					value = value.strip()
-					if decoded.startswith("DateTime"):
-						try:
-							value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
-						except:
-							pass
-				self._attributes[decoded] = value
+			if isinstance(value, str):
+				value = value.strip()
+				if decoded.startswith("DateTime"):
+					try:
+						value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
+					except:
+						pass
+			exif[decoded] = value
 		
-		if "Orientation" in self._attributes and self._attributes["Orientation"] in range(5, 9):
-			self._attributes["size"] = (self._attributes["size"][1], self._attributes["size"][0])
+		if "Orientation" in exif:
+			self._orientation = exif["Orientation"];
+			if self._orientation in range(5, 9):
+				self._attributes["size"] = (self._attributes["size"][1], self._attributes["size"][0])
+			self._attributes["orientation"] = ["Horizontal (normal)", "Mirror horizontal", "Rotate 180", "Mirror vertical", "Mirror horizontal and rotate 270 CW", "Rotate 90 CW", "Mirror horizontal and rotate 90 CW", "Rotate 270 CW"][self._orientation - 1]
+		if "Make" in exif:
+			self._attributes["make"] = exif["Make"]
+		if "Model" in exif:
+			self._attributes["model"] = exif["Model"]
+		if "ApertureValue" in exif:
+			self._attributes["aperture"] = exif["ApertureValue"]
+		if "FNumber" in exif:
+			self._attributes["fStop"] = exif["FNumber"]
+		if "FocalLength" in exif:
+			self._attributes["focalLength"] = exif["FocalLength"]
+		if "ISOSpeedRatings" in exif:
+			self._attributes["iso"] = exif["ISOSpeedRatings"]
+		if "ISO" in exif:
+			self._attributes["iso"] = exif["ISO"]
+		if "PhotographicSensitivity" in exif:
+			self._attributes["iso"] = exif["PhotographicSensitivity"]
+		if "ExposureTime" in exif:
+			self._attributes["exposureTime"] = exif["ExposureTime"]
+		if "MeteringMode" in exif:
+			self._attributes["meteringMode"] = exif["MeteringMode"]
+		if "Flash" in exif:
+			self._attributes["flash"] = exif["Flash"] != 0
+		if "ExposureProgram" in exif:
+			self._attributes["exposureProgram"] = ["Not Defined", "Manual", "Program AE", "Aperture-priority AE", "Shutter speed priority AE", "Creative (Slow speed)", "Action (High speed)", "Portrait", "Landscape", "Bulb"][exif["ExposureProgram"]]
+		if "SpectralSensitivity" in exif:
+			self._attributes["spectralSensitivity"] = exif["SpectralSensitivity"]
+		if "MeteringMode" in exif:
+			if exif["MeteringMode"] == 255:
+				self._attributes["meteringMode"] = "Other"
+			else:
+				self._attributes["meteringMode"] = ["Unknown", "Average", "Center-weighted average", "Spot", "Multi-spot", "Multi-segment", "Partial"][exif["MeteringMode"]]
+		if "ExposureCompensation" in exif:
+			self._attributes["exposureCompensation"] = exif["ExposureCompensation"]
+		if "ExposureBiasValue" in exif:
+			self._attributes["exposureCompensation"] = exif["ExposureBiasValue"]
+		if "DateTimeOriginal" in exif:
+			self._attributes["dateTimeOriginal"] = exif["DateTimeOriginal"]
+		if "DateTime" in exif:
+			self._attributes["dateTime"] = exif["DateTime"]
+
+		
 	def _thumbnail(self, image, thumb_path, size, square=False):
 		thumb_path = os.path.join(thumb_path, image_cache(self._path, size, square))
 		print "Thumbing %s" % thumb_path
-		if os.path.exists(thumb_path) and file_mtime(thumb_path) >= self._attributes["DateTimeFile"]:
+		if os.path.exists(thumb_path) and file_mtime(thumb_path) >= self._attributes["dateTimeFile"]:
 			return
 		gc.collect()
 		image = image.copy()
@@ -174,30 +220,26 @@ class Photo(object):
 			os.path.unlink(thumb_path)
 		
 	def _thumbnails(self, image, thumb_path):
-		if "Orientation" in self._attributes:
-			orientation = self._attributes["Orientation"]
-		else:
-			orientation = 1
 		mirror = image
-		if orientation == 2:
+		if self._orientation == 2:
 			# Vertical Mirror
 			mirror = image.transpose(Image.FLIP_LEFT_RIGHT)
-		elif orientation == 3:
+		elif self._orientation == 3:
 			# Rotation 180
 			mirror = image.transpose(Image.ROTATE_180)
-		elif orientation == 4:
+		elif self._orientation == 4:
 			# Horizontal Mirror
 			mirror = image.transpose(Image.FLIP_TOP_BOTTOM)
-		elif orientation == 5:
+		elif self._orientation == 5:
 			# Horizontal Mirror + Rotation 270
 			mirror = image.transpose(Image.FLIP_TOP_BOTTOM).transpose(Image.ROTATE_270)
-		elif orientation == 6:
+		elif self._orientation == 6:
 			# Rotation 270
 			mirror = image.transpose(Image.ROTATE_270)
-		elif orientation == 7:
+		elif self._orientation == 7:
 			# Vertical Mirror + Rotation 270
 			mirror = image.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.ROTATE_270)
-		elif orientation == 8:
+		elif self._orientation == 8:
 			# Rotation 90
 			mirror = image.transpose(Image.ROTATE_90)
 		for size in Photo.thumb_sizes:
@@ -222,7 +264,7 @@ class Photo(object):
 		elif "DateTime" in self._attributes:
 			return self._attributes["DateTime"]
 		else:
-			return self._attributes["DateTimeFile"]
+			return self._attributes["dateTimeFile"]
 	def __cmp__(self, other):
 		date_compare = cmp(self.date, other.date)
 		if date_compare == 0:
