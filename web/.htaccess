@@ -1,4 +1,12 @@
 AddOutputFilterByType DEFLATE text/text text/html text/plain text/xml text/css application/x-javascript application/javascript application/json
-<FilesMatch "(Makefile)|(.*\.pyc)">
+
+<FilesMatch "Makefile">
 	deny from all
 </FilesMatch>
+
+RewriteEngine On
+RewriteBase /
+RewriteRule ^redirect\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /redirect.php [L]
