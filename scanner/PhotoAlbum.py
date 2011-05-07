@@ -1,6 +1,7 @@
 from CachePath import *
 from datetime import datetime
 import json
+import os
 import os.path
 from PIL import Image
 from PIL.ExifTags import TAGS
@@ -224,7 +225,8 @@ class Photo(object):
 		try:
 			image.save(thumb_path, "JPEG")
 		except:
-			os.path.unlink(thumb_path)
+			print "Could not thumbnail %s" % thumb_path
+			os.unlink(thumb_path)
 		
 	def _thumbnails(self, image, thumb_path):
 		mirror = image

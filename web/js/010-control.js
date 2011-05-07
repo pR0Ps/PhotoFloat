@@ -281,7 +281,7 @@ $(document).ready(function() {
 				.css("padding-top", 0)
 				.css("padding-bottom", 0)
 				.show()
-				.animate({ height: 16 * 11, paddingTop: 3, paddingBottom: 3 }, "slow", function() {
+				.animate({ height: 16.3 * 11, paddingTop: 3, paddingBottom: 3 }, "slow", function() {
 					$("#metadata-link").text($("#metadata-link").text().replace("show", "hide"));
 				});
 		else
