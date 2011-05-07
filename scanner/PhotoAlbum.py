@@ -259,9 +259,9 @@ class Photo(object):
 	def date(self):
 		if not self.is_valid:
 			return datetime(1900, 1, 1)
-		if "DateTimeOriginal" in self._attributes:
+		if "dateTimeOriginal" in self._attributes:
 			return self._attributes["dateTimeOriginal"]
-		elif "DateTime" in self._attributes:
+		elif "dateTime" in self._attributes:
 			return self._attributes["dateTime"]
 		else:
 			return self._attributes["dateTimeFile"]
