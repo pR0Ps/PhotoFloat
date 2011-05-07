@@ -140,7 +140,7 @@ class Photo(object):
 			decoded = TAGS.get(tag, tag)
 			if isinstance(value, str):
 				value = value.strip()
-				if decoded.startswith("DateTime"):
+				if isinstance(decoded, str) and decoded.startswith("DateTime"):
 					try:
 						value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
 					except:
@@ -279,7 +279,7 @@ class Photo(object):
 		path = os.path.join(basepath, dictionary["name"])
 		del dictionary["name"]
 		for key, value in dictionary.items():
-			if key.startswith("DateTime"):
+			if key.startswith("dateTime"):
 				try:
 					dictionary[key] = datetime.strptime(dictionary[key], "%a %b %d %H:%M:%S %Y")
 				except:
