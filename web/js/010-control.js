@@ -52,10 +52,10 @@ $(document).ready(function() {
 		$("#loading").hide();
 		album_cache[cachePath(album.path)] = album;
 		current_album = album;
-		if (cachePath(album.path) == current_album_cache)
-			showAlbum();
 		if (current_photo_cache != null)
 			showPhoto();
+		if (cachePath(album.path) == current_album_cache)
+			showAlbum(true);
 		setTitle();
 	}
 	function trimExtension(title) {
@@ -89,35 +89,39 @@ $(document).ready(function() {
 			title += trimExtension(current_photo.name);
 		$("#title").html(title);
 	}
-	function showAlbum() {
-		$("html, body").animate({ scrollTop: 0 }, "slow");
-		var photos = "";
-		for (var i = 0; i < current_album.photos.length; ++i)
-			photos += "<a href=\"#" + current_album_cache + "/" + cachePath(current_album.photos[i].name) + "\"><img title=\"" + trimExtension(current_album.photos[i].name) + "\" alt=\"" + trimExtension(current_album.photos[i].name) + "\" id=\"thumb-" + cachePath(current_album.photos[i].name) + "\" src=\"" + imagePath(current_album.photos[i].name, current_album.path, 150, true) + "\" height=\"150\" width=\"150\"></a>";
-		$("#thumbs").html(photos);
-		if (current_album.albums.length)
-			$("#subalbums-title").show();
-		else
-			$("#subalbums-title").hide();
-		var subalbums = "";
-		var thumbFinderList = new Array();
-		for (var i = current_album.albums.length - 1; i >= 0; --i) {
-			var path = cachePath(current_album.path + "/" + current_album.albums[i].path);
-			var id = "album-" + path;
-			subalbums += "<a href=\"#" + path + "\"><div title=\"" + current_album.albums[i].date + "\" id=\"" + id + "\" class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
-			thumbFinderList.push({ path: path, id: escapeId(id) });
-		}
-		$("#subalbums").html(subalbums);
-		for (var i = 0; i < thumbFinderList.length; ++i)
-			(function(thumb) {
-				albumThumbFinder(thumb.path, function(photo, album) {
-					$("#" + thumb.id).css("background-image", "url(" + imagePath(photo.name, album.path, 150, true) + ")");
-				});
-			})(thumbFinderList[i]);
+	function showAlbum(populate) {
+		if (current_photo_cache == null && previous_photo_cache == null)
+			$("html, body").stop().animate({ scrollTop: 0 }, "slow");
 		
-		$("#album-view").removeClass("photo-view-container");
-		$("#subalbums").show();
-		$("#photo-view").hide();
+		if (populate) {
+			var photos = "";
+			for (var i = 0; i < current_album.photos.length; ++i)
+				photos += "<a href=\"#" + current_album_cache + "/" + cachePath(current_album.photos[i].name) + "\"><img title=\"" + trimExtension(current_album.photos[i].name) + "\" alt=\"" + trimExtension(current_album.photos[i].name) + "\" id=\"thumb-" + cachePath(current_album.photos[i].name) + "\" src=\"" + imagePath(current_album.photos[i].name, current_album.path, 150, true) + "\" height=\"150\" width=\"150\"></a>";
+			$("#thumbs").html(photos);
+			
+			var subalbums = "";
+			var thumbFinderList = new Array();
+			for (var i = current_album.albums.length - 1; i >= 0; --i) {
+				var path = cachePath(current_album.path + "/" + current_album.albums[i].path);
+				var id = "album-" + path;
+				subalbums += "<a href=\"#" + path + "\"><div title=\"" + current_album.albums[i].date + "\" id=\"" + id + "\" class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
+				thumbFinderList.push({ path: path, id: escapeId(id) });
+			}
+			$("#subalbums").html(subalbums);
+			for (var i = 0; i < thumbFinderList.length; ++i)
+				(function(thumb) {
+					albumThumbFinder(thumb.path, function(photo, album) {
+						$("#" + thumb.id).css("background-image", "url(" + imagePath(photo.name, album.path, 150, true) + ")");
+					});
+				})(thumbFinderList[i]);
+		}
+		
+		if (current_photo_cache == null) {
+			$("#album-view").removeClass("photo-view-container");
+			$("#subalbums").show();
+			$("#photo-view").hide();
+		}
+		scrollToThumb();
 	}
 	function getDecimal(fraction) {
 		if (fraction[0] < fraction[1])
@@ -176,10 +180,22 @@ $(document).ready(function() {
 		$("#album-view").addClass("photo-view-container");
 		$("#subalbums").hide();
 		$("#photo-view").show();
-		var thumb = $("#thumb-" + escapeId(current_photo_cache));
-		var scroller = $("#album-view");
-		scroller.stop();
-		scroller.animate({ scrollLeft: thumb.position().left + scroller.scrollLeft() - scroller.width() / 2 + thumb.width() / 2 }, "slow");
+	}
+	function scrollToThumb() {
+		var photo = current_photo_cache
+		if (photo == null) {
+			photo = previous_photo_cache;
+			if (photo == null)
+				return;
+		}
+		var thumb = $("#thumb-" + escapeId(photo));
+		if (!thumb.length)
+			return;
+		if (current_photo_cache != null) {
+			var scroller = $("#album-view");
+			scroller.stop().animate({ scrollLeft: thumb.position().left + scroller.scrollLeft() - scroller.width() / 2 + thumb.width() / 2 }, "slow");
+		} else
+			$("html, body").stop().animate({ scrollTop: thumb.offset().top - $(window).height() / 2 + thumb.height() }, "slow");
 	}
 	function currentPhoto() {
 		for (current_photo_index = 0; current_photo_index < current_album.photos.length; ++current_photo_index) {
@@ -229,6 +245,7 @@ $(document).ready(function() {
 	
 	var current_album_cache = null;
 	var current_photo_cache = null;
+	var previous_photo_cache = null;
 	var current_album = null;
 	var current_photo = null;
 	var current_photo_index = -1;
@@ -237,21 +254,25 @@ $(document).ready(function() {
 		var new_album_cache = location.hash.substring(1);
 		var index = new_album_cache.lastIndexOf("/");
 		if (index != -1 && index != new_album_cache.length - 1) {
+			previous_photo_cache = current_photo_cache;
 			current_photo_cache = new_album_cache.substring(index + 1);
 			new_album_cache = new_album_cache.substring(0, index);
-		} else
+		} else {
+			previous_photo_cache = current_photo_cache;
 			current_photo_cache = null;
+		}
 		if (!new_album_cache.length)
 			new_album_cache = cachePath("root");
 		if (new_album_cache != current_album_cache) {
 			current_album_cache = new_album_cache;
+			previous_photo_cache = null;
 			loadAlbum();
 		} else if (current_photo_cache != null) {
-			showAlbum();
 			showPhoto();
+			showAlbum(false);
 			setTitle();
 		} else {
-			showAlbum();
+			showAlbum(false);
 			setTitle();
 		}
 	});
