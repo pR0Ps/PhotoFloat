@@ -1,8 +1,9 @@
 import os
 import os.path
 from datetime import datetime
-from PhotoAlbum import Photo, Album
+from PhotoAlbum import Photo, Album, PhotoAlbumEncoder
 from CachePath import json_cache, set_cache_path_base, file_mtime
+import json
 
 class TreeWalker:
 	def __init__(self, album_path, cache_path):
@@ -12,6 +13,7 @@ class TreeWalker:
 		self.all_albums = list()
 		self.all_photos = list()
 		self.walk(self.album_path)
+		self.big_lists()
 		self.remove_stale()
 	def walk(self, path):
 		print "Walking %s" % path
@@ -51,7 +53,23 @@ class TreeWalker:
 		album.cache(self.cache_path)
 		self.all_albums.append(album)
 		return album
+	def big_lists(self):
+		photo_list = []
+		self.all_photos.sort()
+		for photo in self.all_photos:
+			photo_list.append(photo.path)
+		print "Writing all photos list."
+		fp = open(os.path.join(self.cache_path, "all_photos.json"), 'w')
+		json.dump(photo_list, fp, cls=PhotoAlbumEncoder)
+		fp.close()
+		photo_list.reverse()
+		print "Writing latest photos list."
+		fp = open(os.path.join(self.cache_path, "latest_photos.json"), 'w')
+		json.dump(photo_list[0:27], fp, cls=PhotoAlbumEncoder)
+		fp.close()
+		
 	def remove_stale(self):
+		print "Removing stale cache entries."
 		for cache in os.listdir(self.cache_path):
 			match = False
 			for album in self.all_albums:

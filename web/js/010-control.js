@@ -56,6 +56,12 @@ $(document).ready(function() {
 			showPhoto();
 		setTitle();
 	}
+	function trimExtension(title) {
+		var index = title.lastIndexOf(".");
+		if (index != -1)
+			return title.substring(0, index)
+		return title;
+	}
 	function setTitle() {
 		var title = "";
 		var components;
@@ -78,14 +84,14 @@ $(document).ready(function() {
 			}
 		}
 		if (current_photo_cache != null)
-			title += current_photo.name;
+			title += trimExtension(current_photo.name);
 		$("#title").html(title);
 	}
 	function showAlbum() {
 		$("html, body").animate({ scrollTop: 0 }, "slow");
 		var photos = "";
 		for (var i = 0; i < current_album.photos.length; ++i)
-			photos += "<a href=\"#" + current_album_cache + "/" + cachePath(current_album.photos[i].name) + "\"><img id=\"thumb-" + cachePath(current_album.photos[i].name) + "\" src=\"" + imagePath(current_album.photos[i].name, current_album.path, 150, true) + "\" height=\"150\" width=\"150\"></a>";
+			photos += "<a href=\"#" + current_album_cache + "/" + cachePath(current_album.photos[i].name) + "\"><img title=\"" + trimExtension(current_album.photos[i].name) + "\" alt=\"" + trimExtension(current_album.photos[i].name) + "\" id=\"thumb-" + cachePath(current_album.photos[i].name) + "\" src=\"" + imagePath(current_album.photos[i].name, current_album.path, 150, true) + "\" height=\"150\" width=\"150\"></a>";
 		$("#thumbs").html(photos);
 		if (current_album.albums.length)
 			$("#subalbums-title").show();
@@ -96,7 +102,7 @@ $(document).ready(function() {
 		for (var i = current_album.albums.length - 1; i >= 0; --i) {
 			var path = cachePath(current_album.path + "/" + current_album.albums[i].path);
 			var id = "album-" + path;
-			subalbums += "<a href=\"#" + path + "\"><div id=\"" + id + "\" class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
+			subalbums += "<a href=\"#" + path + "\"><div title=\"" + current_album.albums[i].date + "\" id=\"" + id + "\" class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
 			thumbFinderList.push({ path: path, id: escapeId(id) });
 		}
 		$("#subalbums").html(subalbums);
@@ -131,7 +137,7 @@ $(document).ready(function() {
 			.attr("width", width).attr("height", height)
 			.attr("src", imagePath(current_photo.name, current_album.path, maxSize, false))
 			.attr("alt", current_photo.name)
-			.attr("title", current_photo.name)
+			.attr("title", current_photo.date)
 			.load(function() { $(this).css("width", "auto").css("height", "100%"); });
 		var nextLink = "#" + current_album_cache + "/" + cachePath(current_album.photos[
 			(current_photo_index + 1 >= current_album.photos.length) ? 0 : (current_photo_index + 1)

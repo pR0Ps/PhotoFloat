@@ -87,7 +87,7 @@ class Album(object):
 		return None
 	
 class Photo(object):
-	thumb_sizes = [ (150, True), (640, False), (800, False), (1024, False) ]
+	thumb_sizes = [ (75, True), (150, True), (640, False), (800, False), (1024, False) ]
 	def __init__(self, path, thumb_path=None, attributes=None):
 		self._path = trim_base(path)
 		self.is_valid = True
@@ -191,6 +191,9 @@ class Photo(object):
 		return os.path.basename(self._path)
 	def __str__(self):
 		return self.name
+	@property
+	def path(self):
+		return self._path
 	@property
 	def image_caches(self):
 		return [image_cache(self._path, size[0], size[1]) for size in Photo.thumb_sizes]
