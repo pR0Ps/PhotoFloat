@@ -150,14 +150,19 @@ $(document).ready(function() {
 			.attr("alt", current_photo.name)
 			.attr("title", current_photo.date)
 			.load(function() { $(this).css("width", "auto").css("height", "100%"); });
-		var nextLink = "#" + current_album_cache + "/" + cachePath(current_album.photos[
+		
+		var previousPhoto = current_album.photos[
+			(current_photo_index - 1 < 0) ? (current_album.photos.length - 1) : (current_photo_index - 1)
+		];
+		var nextPhoto = current_album.photos[
 			(current_photo_index + 1 >= current_album.photos.length) ? 0 : (current_photo_index + 1)
-		].name);
+		];
+		$.preloadImages(imagePath(nextPhoto.name, current_album.path, maxSize, false), imagePath(previousPhoto.name, current_album.path, maxSize, false));
+		
+		var nextLink = "#" + current_album_cache + "/" + cachePath(nextPhoto.name);
 		$("#next-photo").attr("href", nextLink);
 		$("#next").attr("href", nextLink);
-		$("#back").attr("href", "#" + current_album_cache + "/" + cachePath(current_album.photos[
-			(current_photo_index - 1 < 0) ? (current_album.photos.length - 1) : (current_photo_index - 1)
-		].name));
+		$("#back").attr("href", "#" + current_album_cache + "/" + cachePath(previousPhoto.name));
 		$("#original-link").attr("target", "_blank").attr("href", "albums/" + current_album.path + "/" + current_photo.name);
 
 		var text = "<table>";
