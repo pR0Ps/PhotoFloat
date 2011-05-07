@@ -144,7 +144,7 @@ class Photo(object):
 					try:
 						value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
 					except:
-						pass
+						continue
 			exif[decoded] = value
 		
 		if "Orientation" in exif:
@@ -260,9 +260,9 @@ class Photo(object):
 		if not self.is_valid:
 			return datetime(1900, 1, 1)
 		if "DateTimeOriginal" in self._attributes:
-			return self._attributes["DateTimeOriginal"]
+			return self._attributes["dateTimeOriginal"]
 		elif "DateTime" in self._attributes:
-			return self._attributes["DateTime"]
+			return self._attributes["dateTime"]
 		else:
 			return self._attributes["dateTimeFile"]
 	def __cmp__(self, other):
