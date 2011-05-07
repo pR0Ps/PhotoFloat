@@ -105,7 +105,7 @@ a:hover {
 }
 #metadata {
 	background-color: #000000;
-	width: 240px;
+	width: 270px;
 	font-size: 12px;
 	line-height: 12px;
 	padding-top: 3px;
@@ -124,8 +124,10 @@ a:hover {
 	opacity: 0.5;
 	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
 	filter: alpha(opacity=50);
+	overflow: auto;
 }
 #metadata table {
+	margin: auto auto;
 	text-align: left;
 }
 #metadata tr {

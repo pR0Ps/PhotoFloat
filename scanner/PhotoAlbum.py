@@ -151,15 +151,15 @@ class Photo(object):
 			self._orientation = exif["Orientation"];
 			if self._orientation in range(5, 9):
 				self._attributes["size"] = (self._attributes["size"][1], self._attributes["size"][0])
-			self._attributes["orientation"] = ["Horizontal (normal)", "Mirror horizontal", "Rotate 180", "Mirror vertical", "Mirror horizontal and rotate 270 CW", "Rotate 90 CW", "Mirror horizontal and rotate 90 CW", "Rotate 270 CW"][self._orientation - 1]
+			self._attributes["orientation"] = self._metadata.orientation_list[self._orientation - 1]
 		if "Make" in exif:
 			self._attributes["make"] = exif["Make"]
 		if "Model" in exif:
 			self._attributes["model"] = exif["Model"]
 		if "ApertureValue" in exif:
 			self._attributes["aperture"] = exif["ApertureValue"]
-		if "FNumber" in exif:
-			self._attributes["fStop"] = exif["FNumber"]
+		elif "FNumber" in exif:
+			self._attributes["aperture"] = exif["FNumber"]
 		if "FocalLength" in exif:
 			self._attributes["focalLength"] = exif["FocalLength"]
 		if "ISOSpeedRatings" in exif:
@@ -173,16 +173,19 @@ class Photo(object):
 		if "MeteringMode" in exif:
 			self._attributes["meteringMode"] = exif["MeteringMode"]
 		if "Flash" in exif:
-			self._attributes["flash"] = exif["Flash"] != 0
+			try:
+				self._attributes["flash"] = self._metadata.flash_dictionary[exif["Flash"]]
+			except:
+				pass
 		if "ExposureProgram" in exif:
-			self._attributes["exposureProgram"] = ["Not Defined", "Manual", "Program AE", "Aperture-priority AE", "Shutter speed priority AE", "Creative (Slow speed)", "Action (High speed)", "Portrait", "Landscape", "Bulb"][exif["ExposureProgram"]]
+			self._attributes["exposureProgram"] = self._metadata.exposure_list[exif["ExposureProgram"]]
 		if "SpectralSensitivity" in exif:
 			self._attributes["spectralSensitivity"] = exif["SpectralSensitivity"]
 		if "MeteringMode" in exif:
 			if exif["MeteringMode"] == 255:
 				self._attributes["meteringMode"] = "Other"
 			else:
-				self._attributes["meteringMode"] = ["Unknown", "Average", "Center-weighted average", "Spot", "Multi-spot", "Multi-segment", "Partial"][exif["MeteringMode"]]
+				self._attributes["meteringMode"] = self._metadata.metering_list[exif["MeteringMode"]]
 		if "ExposureCompensation" in exif:
 			self._attributes["exposureCompensation"] = exif["ExposureCompensation"]
 		if "ExposureBiasValue" in exif:
@@ -191,7 +194,11 @@ class Photo(object):
 			self._attributes["dateTimeOriginal"] = exif["DateTimeOriginal"]
 		if "DateTime" in exif:
 			self._attributes["dateTime"] = exif["DateTime"]
-
+	
+	_metadata.flash_dictionary = {0x0: "No Flash", 0x1: "Fired",0x5: "Fired, Return not detected",0x7: "Fired, Return detected",0x8: "On, Did not fire",0x9: "On, Fired",0xd: "On, Return not detected",0xf: "On, Return detected",0x10: "Off, Did not fire",0x14: "Off, Did not fire, Return not detected",0x18: "Auto, Did not fire",0x19: "Auto, Fired",0x1d: "Auto, Fired, Return not detected",0x1f: "Auto, Fired, Return detected",0x20: "No flash function",0x30: "Off, No flash function",0x41: "Fired, Red-eye reduction",0x45: "Fired, Red-eye reduction, Return not detected",0x47: "Fired, Red-eye reduction, Return detected",0x49: "On, Red-eye reduction",0x4d: "On, Red-eye reduction, Return not detected",0x4f: "On, Red-eye reduction, Return detected",0x50: "Off, Red-eye reduction",0x58: "Auto, Did not fire, Red-eye reduction",0x59: "Auto, Fired, Red-eye reduction",0x5d: "Auto, Fired, Red-eye reduction, Return not detected",0x5f: "Auto, Fired, Red-eye reduction, Return detected"}
+	_metadata.metering_list = ["Unknown", "Average", "Center-weighted average", "Spot", "Multi-spot", "Multi-segment", "Partial"]
+	_metadata.exposure_list = ["Not Defined", "Manual", "Program AE", "Aperture-priority AE", "Shutter speed priority AE", "Creative (Slow speed)", "Action (High speed)", "Portrait", "Landscape", "Bulb"]
+	_metadata.orientation_list = ["Horizontal (normal)", "Mirror horizontal", "Rotate 180", "Mirror vertical", "Mirror horizontal and rotate 270 CW", "Rotate 90 CW", "Mirror horizontal and rotate 90 CW", "Rotate 270 CW"]
 		
 	def _thumbnail(self, image, thumb_path, size, square=False):
 		thumb_path = os.path.join(thumb_path, image_cache(self._path, size, square))

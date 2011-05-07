@@ -119,6 +119,11 @@ $(document).ready(function() {
 		$("#subalbums").show();
 		$("#photo-view").hide();
 	}
+	function getDecimal(fraction) {
+		if (fraction[0] < fraction[1])
+			return fraction[0] + "/" + fraction[1];
+		return (fraction[0] / fraction[1]).toString();
+	}
 	function showPhoto() {
 		currentPhoto();
 		if (current_photo == null) {
@@ -156,16 +161,14 @@ $(document).ready(function() {
 		if (current_photo.model != undefined) text += "<tr><td>Camera Model</td><td>" + current_photo.model + "</td></tr>";
 		if (current_photo.date != undefined) text += "<tr><td>Time Taken</td><td>" + current_photo.date + "</td></tr>";
 		if (current_photo.size != undefined) text += "<tr><td>Resolution</td><td>" + current_photo.size[0] + " x " + current_photo.size[1] + "</td></tr>";
-		if (current_photo.aperture != undefined) text += "<tr><td>Aperture</td><td>" + current_photo.aperture + "</td></tr>";
-		if (current_photo.fStop != undefined) text += "<tr><td>F-Stop</td><td>" + current_photo.fStop + "</td></tr>";
-		if (current_photo.focalLength != undefined) text += "<tr><td>Focal Length</td><td>" + current_photo.focalLength + "</td></tr>";
+		if (current_photo.aperture != undefined) text += "<tr><td>Aperture</td><td> f/" + getDecimal(current_photo.aperture) + "</td></tr>";
+		if (current_photo.focalLength != undefined) text += "<tr><td>Focal Length</td><td>" + getDecimal(current_photo.focalLength) + " mm</td></tr>";
 		if (current_photo.iso != undefined) text += "<tr><td>ISO</td><td>" + current_photo.iso + "</td></tr>";
-		if (current_photo.exposureTime != undefined) text += "<tr><td>Exposure Time</td><td>" + current_photo.exposureTime + "</td></tr>";
+		if (current_photo.exposureTime != undefined) text += "<tr><td>Exposure Time</td><td>" + getDecimal(current_photo.exposureTime) + " sec</td></tr>";
 		if (current_photo.exposureProgram != undefined) text += "<tr><td>Exposure Program</td><td>" + current_photo.exposureProgram + "</td></tr>";
-		if (current_photo.exposureCompensation != undefined) text += "<tr><td>Exposure Compensation</td><td>" + current_photo.exposureCompensation + "</td></tr>";
-		if (current_photo.exposureBiasValue != undefined) text += "<tr><td>Exposure Bias</td><td>" + current_photo.exposureBiasValue + "</td></tr>";
-		if (current_photo.spectralSensitivity != undefined) text += "<tr><td>Spectra lSensitivity</td><td>" + current_photo.spectralSensitivity + "</td></tr>";
-		if (current_photo.flash != undefined) text += "<tr><td>Flash</td><td>" + (current_photo.flash ? "Yes" : "No") + "</td></tr>";
+		if (current_photo.exposureCompensation != undefined) text += "<tr><td>Exposure Compensation</td><td>" + getDecimal(current_photo.exposureCompensation) + "</td></tr>";
+		if (current_photo.spectralSensitivity != undefined) text += "<tr><td>Spectral Sensitivity</td><td>" + current_photo.spectralSensitivity + "</td></tr>";
+		if (current_photo.flash != undefined) text += "<tr><td>Flash</td><td>" + current_photo.flash + "</td></tr>";
 		if (current_photo.orientation != undefined) text += "<tr><td>Orientation</td><td>" + current_photo.orientation + "</td></tr>";
 		text += "</table>";
 		$("#metadata").html(text);
@@ -278,7 +281,7 @@ $(document).ready(function() {
 				.css("padding-top", 0)
 				.css("padding-bottom", 0)
 				.show()
-				.animate({ height: 16 * 12, paddingTop: 3, paddingBottom: 3 }, "slow", function() {
+				.animate({ height: 16 * 11, paddingTop: 3, paddingBottom: 3 }, "slow", function() {
 					$("#metadata-link").text($("#metadata-link").text().replace("show", "hide"));
 				});
 		else
