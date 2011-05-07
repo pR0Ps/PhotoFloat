@@ -3,12 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-	<title>JasonDonenfeld.com &#8211; Colors</title>
+	<title>JasonDonenfeld.com &#8211; Photos</title>
 	<link href="css/styles.min.css" rel="stylesheet" type="text/css" />
 	<script type="text/javascript" src="js/scripts.min.js"></script>
 </head>
 <body>
-<div id="title">Colors</div>
+<div id="title">Photos</div>
 <div id="album-view">
 	<div id="thumbs">
 		<div id="loading">Loading...</div>
@@ -16,10 +16,20 @@
 	<div id="subalbums"></div>
 </div>
 <div id="photo-view">
-	<a id="next-photo"><img id="photo" /></a>
+	<div id="photo-box">
+		<a id="next-photo"><img id="photo" /></a>
+		<div id="photo-bar">
+			<div id="photo-links">
+				<a id="metadata-link">metadata</a> | <a id="original-link" target="_blank">download original</a>
+			</div>
+		</div>
+	</div>
+	
 	<a id="back">&larr;</a>
 	<a id="next">&rarr;</a>
 </div>
+
+<div id="error">Forgot my camera...</div>
 
 </body>
 </html>

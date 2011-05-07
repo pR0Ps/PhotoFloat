@@ -52,6 +52,17 @@ class Album(object):
 		if not self._albums_sorted:
 			self._albums.sort()
 			self._albums_sorted = True
+	@property
+	def empty(self):
+		if len(self._photos) != 0:
+			return False
+		if len(self._albums) == 0:
+			return True
+		for album in self._albums:
+			if not album.empty:
+				return False
+		return True
+		
 	def cache(self, base_dir):
 		self._sort()
 		fp = open(os.path.join(base_dir, self.cache_path), 'w')
@@ -75,10 +86,15 @@ class Album(object):
 		return album
 	def to_dict(self, cripple=True):
 		self._sort()
+		subalbums = []
 		if cripple:
-			subalbums = [ { "path": trim_base_custom(sub.path, self._path), "date": sub.date } for sub in self._albums ]
+			for sub in self._albums:
+				if not sub.empty:
+					subalbums.append({ "path": trim_base_custom(sub.path, self._path), "date": sub.date })
 		else:
-			subalbums = self._albums
+			for sub in self._albums:
+				if not sub.empty:
+					subalbums.append(sub)
 		return { "path": self.path, "date": self.date, "albums": subalbums, "photos": self._photos }
 	def photo_from_path(self, path):
 		for photo in self._photos:

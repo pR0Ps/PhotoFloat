@@ -17,7 +17,7 @@ a:hover {
 	top: 0;
 	padding: 0.4em;
 	font-weight: bold;
-	font-size: 1.2em;
+	font-size: 1.15em;
 }
 #loading {
 	display: none;
@@ -82,6 +82,33 @@ a:hover {
 	right: 0;
 	text-align: center;
 }
+#photo-box {
+	display: inline;
+}
+#photo-links {
+	background-color: #000000;
+	font-weight: bold;
+	height: 10px;
+	font-size: 10px;
+	line-height: 7px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	padding-right: 10px;
+	padding-left: 10px;
+	display: none;
+	border-top-right-radius: 5px;
+	border-top-left-radius: 5px;
+	-moz-border-top-right-radius: 5px;
+	-moz-border-top-left-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+	-webkit-border-top-left-radius: 5px;
+}
+#photo-bar {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	text-align: center;
+}
 .photo-view-container {
 	position: absolute;
 	height: 150px;
@@ -93,4 +120,13 @@ a:hover {
 	white-space: nowrap;
 	padding: 0 !important;
 	text-align: center;
+}
+
+#error {
+	display: none;
+	text-align: center;
+	padding-top: 20%;
+	font-size: 4em;
+	font-weight: bold;
+	font-style: italic;
 }

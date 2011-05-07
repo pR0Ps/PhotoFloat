@@ -49,9 +49,12 @@ class TreeWalker:
 				if photo.is_valid:
 					self.all_photos.append(photo)
 					album.add_photo(photo)
-		print "Writing cache of %s" % album.cache_path
-		album.cache(self.cache_path)
-		self.all_albums.append(album)
+		if not album.empty:
+			print "Writing cache of %s" % album.cache_path
+			album.cache(self.cache_path)
+			self.all_albums.append(album)
+		else:
+			print "Not writing cache of %s because it's empty" % album.cache_path
 		return album
 	def big_lists(self):
 		photo_list = []
@@ -69,19 +72,15 @@ class TreeWalker:
 		fp.close()
 		
 	def remove_stale(self):
-		print "Removing stale cache entries."
+		print "Building list of all cache entries."
+		all_cache_entries = { "all_photos.json": True, "latest_photos.json": True }
+		for album in self.all_albums:
+			all_cache_entries[album.cache_path] = True
+		for photo in self.all_photos:
+			for entry in photo.image_caches:
+				all_cache_entries[entry] = True
+		print "Searching stale cache entries."
 		for cache in os.listdir(self.cache_path):
-			match = False
-			for album in self.all_albums:
-				if cache == album.cache_path:
-					match = True
-					break
-			if match:
-				continue
-			for photo in self.all_photos:
-				if cache in photo.image_caches:
-					match = True
-					break
-			if not match:
+			if cache not in all_cache_entries:
 				print "Removing stale cache %s" % cache
 				os.unlink(os.path.join(self.cache_path, cache))

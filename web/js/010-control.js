@@ -10,6 +10,8 @@ $(document).ready(function() {
 			.replace(/\(/g, "")
 			.replace(/\)/g, "")
 			.replace(/#/g, "")
+			.replace(/&/g, "")
+			.replace(/,/g, "")
 			.replace(/\[/g, "")
 			.replace(/\]/g, "")
 			.replace(/"/g, "")
@@ -42,7 +44,7 @@ $(document).ready(function() {
 		$.ajax({
 			type: "GET",
 			url: "cache/" + current_album_cache + ".json",
-			error: function() { $(document.body).html("Couldn't fetch it."); },
+			error: die,
 			success: albumLoaded
 		});
 	}
@@ -147,6 +149,8 @@ $(document).ready(function() {
 		$("#back").attr("href", "#" + current_album_cache + "/" + cachePath(current_album.photos[
 			(current_photo_index - 1 < 0) ? (current_album.photos.length - 1) : (current_photo_index - 1)
 		].name));
+		$("#original-link").attr("target", "_blank").attr("href", "albums/" + current_album.path + "/" + current_photo.name);
+		$("#metadata-link").attr("href", "javascript:alert('Coming soon...')");
 		
 		$("#album-view").addClass("photo-view-container");
 		$("#subalbums").hide();
@@ -188,12 +192,18 @@ $(document).ready(function() {
 		$.ajax({
 			type: "GET",
 			url: "cache/" + album + ".json",
-			error: function() { $(document.body).html("Couldn't fetch it."); },
+			error: die,
 			success: callback
 		});
 	}
 	function albumThumbFinder(album, callback) {
 		fetchAlbumForThumb(album, function(fetchedAlbum) { albumForThumbIteration(fetchedAlbum, callback); });
+	}
+	function die() {
+		$("#album-view").hide();
+		$("#photo-view").hide();
+		$("#title").hide();
+		$("#error").fadeIn(5000);
 	}
 	
 	var current_album_cache = null;
@@ -236,5 +246,11 @@ $(document).ready(function() {
 			return false;
 		}
 		return true;
+	});
+	$("#photo-box").mouseenter(function() {
+		$("#photo-links").stop().fadeTo("slow", 0.50).css("display", "inline");
+	});
+	$("#photo-box").mouseleave(function() {
+		$("#photo-links").stop().fadeOut("slow");
 	});
 });
