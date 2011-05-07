@@ -121,7 +121,7 @@ $(document).ready(function() {
 			$("#subalbums").show();
 			$("#photo-view").hide();
 		}
-		scrollToThumb();
+		setTimeout(scrollToThumb, 1);
 	}
 	function getDecimal(fraction) {
 		if (fraction[0] < fraction[1])
