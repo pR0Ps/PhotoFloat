@@ -300,6 +300,12 @@ $(document).ready(function() {
 	$("#photo-box").mouseleave(function() {
 		$("#photo-links").stop().fadeOut("slow");
 	});
+	$("#next, #back").mouseenter(function() {
+		$(this).fadeTo("slow", 1);
+	});
+	$("#next, #back").mouseleave(function() {
+		$(this).fadeTo("slow", 0.35);
+	});
 	$("#metadata-link").click(function() {
 		if (!$("#metadata").is(":visible"))
 			$("#metadata").stop()

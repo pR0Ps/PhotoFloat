@@ -6,11 +6,11 @@ body {
 	color: #FFFFFF;
 }
 a {
-	color: #88EE44;
+	color: #84AAC2;
 	text-decoration: none;
 }
 a:hover {
-	color: #DDDDDD;
+	color: #FFAD27;
 }
 #title {
 	position: absolute;
@@ -59,16 +59,19 @@ a:hover {
 #next, #back {
 	position: absolute;
 	width: auto;
-	font-size: 2.5em;
+	font-size: 4.5em;
 	line-height: 0;
 	top: 40%;
 	font-weight: bold;
+	opacity: 0.35;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=35)";
+	filter: alpha(opacity=35);
 }
 #back {
-	left: .5em;
+	left: 0.1em;
 }
 #next {
-	right: .5em;
+	right: 0.1em;
 }
 #photo {
 	border: 0;
