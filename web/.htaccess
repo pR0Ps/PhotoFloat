@@ -20,6 +20,8 @@ AddOutputFilterByType DEFLATE text/text text/html text/plain text/xml text/css a
 RewriteEngine On
 RewriteBase /
 RewriteRule ^redirect\.php$ - [L]
+RewriteCond %{QUERY_STRING} _escaped_fragment_=
+RewriteRule . staticrender.php [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /redirect.php [L]

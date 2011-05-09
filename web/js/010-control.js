@@ -79,7 +79,7 @@ $(document).ready(function() {
 			if (i)
 				last += "/" + components[i];
 			if (i < components.length - 1 || current_photo_cache != null)
-				title += "<a href=\"#" + (i == 0 ? "" : cachePath(last.substring(1))) + "\">";
+				title += "<a href=\"#!/" + (i == 0 ? "" : cachePath(last.substring(1))) + "\">";
 			title += components[i];
 			if (i < components.length - 1 || current_photo_cache != null) {
 				title += "</a>";
@@ -97,7 +97,7 @@ $(document).ready(function() {
 		if (populate) {
 			var photos = "";
 			for (var i = 0; i < current_album.photos.length; ++i)
-				photos += "<a href=\"#" + current_album_cache + "/" + cachePath(current_album.photos[i].name) + "\"><img title=\"" + trimExtension(current_album.photos[i].name) + "\" alt=\"" + trimExtension(current_album.photos[i].name) + "\" id=\"thumb-" + cachePath(current_album.photos[i].name) + "\" src=\"" + imagePath(current_album.photos[i].name, current_album.path, 150, true) + "\" height=\"150\" width=\"150\"></a>";
+				photos += "<a href=\"#!/" + current_album_cache + "/" + cachePath(current_album.photos[i].name) + "\"><img title=\"" + trimExtension(current_album.photos[i].name) + "\" alt=\"" + trimExtension(current_album.photos[i].name) + "\" id=\"thumb-" + cachePath(current_album.photos[i].name) + "\" src=\"" + imagePath(current_album.photos[i].name, current_album.path, 150, true) + "\" height=\"150\" width=\"150\"></a>";
 			$("#thumbs").html(photos);
 			
 			var subalbums = "";
@@ -105,7 +105,7 @@ $(document).ready(function() {
 			for (var i = current_album.albums.length - 1; i >= 0; --i) {
 				var path = cachePath(current_album.path + "/" + current_album.albums[i].path);
 				var id = "album-" + path;
-				subalbums += "<a href=\"#" + path + "\"><div title=\"" + current_album.albums[i].date + "\" id=\"" + id + "\" class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
+				subalbums += "<a href=\"#!/" + path + "\"><div title=\"" + current_album.albums[i].date + "\" id=\"" + id + "\" class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
 				thumbFinderList.push({ path: path, id: escapeId(id) });
 			}
 			$("#subalbums").html(subalbums);
@@ -172,10 +172,10 @@ $(document).ready(function() {
 		];
 		$.preloadImages(imagePath(nextPhoto.name, current_album.path, maxSize, false), imagePath(previousPhoto.name, current_album.path, maxSize, false));
 		
-		var nextLink = "#" + current_album_cache + "/" + cachePath(nextPhoto.name);
+		var nextLink = "#!/" + current_album_cache + "/" + cachePath(nextPhoto.name);
 		$("#next-photo").attr("href", nextLink);
 		$("#next").attr("href", nextLink);
-		$("#back").attr("href", "#" + current_album_cache + "/" + cachePath(previousPhoto.name));
+		$("#back").attr("href", "#!/" + current_album_cache + "/" + cachePath(previousPhoto.name));
 		$("#original-link").attr("target", "_blank").attr("href", "albums/" + current_album.path + "/" + current_photo.name);
 
 		var text = "<table>";
@@ -273,6 +273,10 @@ $(document).ready(function() {
 	var album_cache = new Array();
 	$(window).hashchange(function() {
 		var new_album_cache = location.hash.substring(1);
+		if (new_album_cache.length && new_album_cache[0] == "!")
+			new_album_cache = new_album_cache.substring(1);
+		if (new_album_cache.length && new_album_cache[0] == "/")
+			new_album_cache = new_album_cache.substring(1);
 		var index = new_album_cache.lastIndexOf("/");
 		if (index != -1 && index != new_album_cache.length - 1) {
 			previous_photo_cache = current_photo_cache;

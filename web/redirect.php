@@ -22,15 +22,15 @@ if ($url[strlen($url) - 1] == '/')
 if (strpos(strtolower($url), ".php") == strlen($url) - 4) {
 	$url = substr($url, 0, strlen($url) - 4);
 	$index = strrpos($url, "/");
-	$redirect = "/#".cachePath(substr($url, 0, $index))."/".cachePath(substr($url, $index));
+	$redirect = "/#!/".cachePath(substr($url, 0, $index))."/".cachePath(substr($url, $index));
 } else if (strpos(strtolower($url), ".jpg") == strlen($url) - 4) {
 	$index = strrpos($url, "/");
-	$redirect = "/#".cachePath(substr($url, 0, $index))."/".cachePath(substr($url, $index));
+	$redirect = "/#!/".cachePath(substr($url, 0, $index))."/".cachePath(substr($url, $index));
 } else if (strpos($url, "/cache/") === 0 || strpos($url, "/albums/") === 0 || strpos($url, "/img/") === 0 || strpos($url, "/img/") === 0 || strpos($url, "/js/") === 0 || strpos($url, "/css/") === 0) {
 	header("HTTP/1.1 404 Not Found");
 	exit();
 } else
-	$redirect = "/#".cachePath($url);
+	$redirect = "/#!/".cachePath($url);
 
 header("HTTP/1.1 301 Moved Permanently");
 header("Location: $redirect");
