@@ -270,6 +270,18 @@ $(document).ready(function() {
 		$("#error-text, #error-overlay").fadeOut(500);
 		$("body, html").css("overflow", "auto");
 	}
+	window.hashUrl = function() {
+		var new_album_cache = location.hash.substring(1);
+		if (new_album_cache.length) {
+			if (new_album_cache[0] == "!")
+				new_album_cache = new_album_cache.substring(1);
+			if (new_album_cache[0] == "/")
+				new_album_cache = new_album_cache.substring(1);
+			if (new_album_cache[new_album_cache.length - 1] == "/")
+				new_album_cache = new_album_cache.substring(0, new_album_cache.length - 1);
+		}
+		return new_album_cache;
+	}
 	
 	var current_album_cache = null;
 	var current_photo_cache = null;
@@ -280,15 +292,7 @@ $(document).ready(function() {
 	var original_title = document.title;
 	var album_cache = new Array();
 	$(window).hashchange(function() {
-		var new_album_cache = location.hash.substring(1);
-		if (new_album_cache.length) {
-			if (new_album_cache[0] == "!")
-				new_album_cache = new_album_cache.substring(1);
-			if (new_album_cache[0] == "/")
-				new_album_cache = new_album_cache.substring(1);
-			if (new_album_cache[new_album_cache.length - 1] == "/")
-				new_album_cache = new_album_cache.substring(0, new_album_cache.length - 1);
-		}
+		var new_album_cache = window.hashUrl();
 		var index = new_album_cache.lastIndexOf("/");
 		if (index != -1 && index != new_album_cache.length - 1) {
 			previous_photo_cache = current_photo_cache;

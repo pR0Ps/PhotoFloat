@@ -11,5 +11,5 @@ $(window).load(function () {
 $(window).hashchange(function() {
 	window._gaq = window._gaq || [];
 	window._gaq.push(['_trackPageview']);
-	window._gaq.push(['_trackPageview', location.hash.substring(1)]);
+	window._gaq.push(['_trackPageview', window.hashUrl()]);
 });
