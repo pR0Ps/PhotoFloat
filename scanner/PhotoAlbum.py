@@ -207,7 +207,14 @@ class Photo(object):
 		if os.path.exists(thumb_path) and file_mtime(thumb_path) >= self._attributes["dateTimeFile"]:
 			return
 		gc.collect()
-		image = image.copy()
+		try:
+			image = image.copy()
+		except:
+			try:
+				image = image.copy() # we try again to work around PIL bug
+			except:
+				print "Image is corrupted. %s will not be created." % thumb_path
+				return
 		if square:
 			if image.size[0] > image.size[1]:
 				left = (image.size[0] - image.size[1]) / 2
