@@ -255,7 +255,7 @@ $(document).ready(function() {
 	}
 
 	function die() {
-		$("#error-overlay").fadeIn(500);
+		$("#error-overlay").fadeTo(500, 0.8);
 		$("#error-text").fadeIn(2500);
 		$("body, html").css("overflow", "hidden");
 	}
