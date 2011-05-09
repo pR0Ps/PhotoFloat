@@ -281,10 +281,14 @@ $(document).ready(function() {
 	var album_cache = new Array();
 	$(window).hashchange(function() {
 		var new_album_cache = location.hash.substring(1);
-		if (new_album_cache.length && new_album_cache[0] == "!")
-			new_album_cache = new_album_cache.substring(1);
-		if (new_album_cache.length && new_album_cache[0] == "/")
-			new_album_cache = new_album_cache.substring(1);
+		if (new_album_cache.length) {
+			if (new_album_cache[0] == "!")
+				new_album_cache = new_album_cache.substring(1);
+			if (new_album_cache[0] == "/")
+				new_album_cache = new_album_cache.substring(1);
+			if (new_album_cache[new_album_cache.length - 1] == "/")
+				new_album_cache = new_album_cache.substring(0, new_album_cache.length - 1);
+		}
 		var index = new_album_cache.lastIndexOf("/");
 		if (index != -1 && index != new_album_cache.length - 1) {
 			previous_photo_cache = current_photo_cache;
