@@ -32,6 +32,8 @@ class TreeWalker:
 		if not cached:
 			album = Album(path)
 		for entry in os.listdir(path):
+			if entry[0] == '.':
+				continue
 			entry = os.path.join(path, entry)
 			if os.path.isdir(entry):
 				album.add_album(self.walk(entry))
@@ -39,7 +41,7 @@ class TreeWalker:
 				cache_hit = False
 				if cached_album:
 					cached_photo = cached_album.photo_from_path(entry)
-					if cached_photo and file_mtime(entry) <= cached_photo.attributes["DateTimeFile"]:
+					if cached_photo and file_mtime(entry) <= cached_photo.attributes["dateTimeFile"]:
 						print "Photo cache hit %s" % entry
 						cache_hit = True
 						photo = cached_photo
