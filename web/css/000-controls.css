@@ -39,7 +39,7 @@ a:hover {
 	padding: 0;
 }
 .current-thumb {
-	/* do something to the current thumbnail */
+	border-top: 1px solid #FFAD27 !important;
 }
 #subalbums {
 	padding-top: 1.5em;
