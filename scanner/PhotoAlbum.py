@@ -152,7 +152,8 @@ class Photo(object):
 			self._orientation = exif["Orientation"];
 			if self._orientation in range(5, 9):
 				self._attributes["size"] = (self._attributes["size"][1], self._attributes["size"][0])
-			self._attributes["orientation"] = self._metadata.orientation_list[self._orientation - 1]
+			if self._orientation - 1 < len(self._metadata.orientation_list):
+				self._attributes["orientation"] = self._metadata.orientation_list[self._orientation - 1]
 		if "Make" in exif:
 			self._attributes["make"] = exif["Make"]
 		if "Model" in exif:
@@ -171,22 +172,17 @@ class Photo(object):
 			self._attributes["iso"] = exif["PhotographicSensitivity"]
 		if "ExposureTime" in exif:
 			self._attributes["exposureTime"] = exif["ExposureTime"]
-		if "MeteringMode" in exif:
-			self._attributes["meteringMode"] = exif["MeteringMode"]
-		if "Flash" in exif:
+		if "Flash" in exif and exif["Flash"] in self._metadata.flash_dictionary:
 			try:
 				self._attributes["flash"] = self._metadata.flash_dictionary[exif["Flash"]]
 			except:
 				pass
-		if "ExposureProgram" in exif:
+		if "ExposureProgram" in exif and exif["ExposureProgram"] < len(self._metadata.exposure_list):
 			self._attributes["exposureProgram"] = self._metadata.exposure_list[exif["ExposureProgram"]]
 		if "SpectralSensitivity" in exif:
 			self._attributes["spectralSensitivity"] = exif["SpectralSensitivity"]
-		if "MeteringMode" in exif:
-			if exif["MeteringMode"] == 255:
-				self._attributes["meteringMode"] = "Other"
-			else:
-				self._attributes["meteringMode"] = self._metadata.metering_list[exif["MeteringMode"]]
+		if "MeteringMode" in exif and exif["MeteringMode"] < len(self._metadata.metering_list):
+			self._attributes["meteringMode"] = self._metadata.metering_list[exif["MeteringMode"]]
 		if "ExposureCompensation" in exif:
 			self._attributes["exposureCompensation"] = exif["ExposureCompensation"]
 		if "ExposureBiasValue" in exif:
