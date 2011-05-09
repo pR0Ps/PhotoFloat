@@ -12,7 +12,7 @@ CSS_COMPILER = utils/yuicompressor --type css
 
 .PHONY: all clean
 
-all: $(JS_MIN) $(CSS_MIN)
+all: $(JS_MIN) $(CSS_MIN) utils/ServerExecute.class
 
 %.min.js: %.js
 	@echo "Compiling javascript" $<
@@ -29,6 +29,13 @@ $(JS_MIN): $(JS_MIN_FILES)
 $(CSS_MIN): $(CSS_MIN_FILES)
 	@echo "Assembling compiled stylesheets"
 	@cat $^ > $@
+
+empty :=
+space := $(empty) $(empty)
+classpath := $(subst $(space),:,$(wildcard utils/htmlunit-2.8/*.jar))
+utils/ServerExecute.class: utils/ServerExecute.java
+	@echo "Building HtmlUnit wrapper."
+	@javac -classpath $(classpath) -d utils $^
 
 clean:
 	@rm -fv $(JS_MIN) $(JS_MIN_FILES) $(CSS_MIN) $(CSS_MIN_FILES)
