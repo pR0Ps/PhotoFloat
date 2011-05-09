@@ -128,6 +128,16 @@ $(document).ready(function() {
 			return fraction[0] + "/" + fraction[1];
 		return (fraction[0] / fraction[1]).toString();
 	}
+	function scaleImage() {
+		var image = $("#photo");
+		if (image.get(0) == this)
+			$(window).bind("resize", scaleImage);
+		var container = $("#photo-view");
+		if (image.css("width") != "100%" && container.height() * image.width() / image.height() > container.width())
+			image.css("width", "100%").css("height", "auto");
+		else if (image.css("height") != "100%")
+			image.css("height", "100%").css("width", "auto");
+	}
 	function showPhoto() {
 		currentPhoto();
 		if (current_photo == null) {
@@ -144,12 +154,13 @@ $(document).ready(function() {
 			width = width / height * maxSize;
 			height = maxSize;
 		}
+		$(window).unbind("resize", scaleImage);
 		$("#photo")
 			.attr("width", width).attr("height", height)
 			.attr("src", imagePath(current_photo.name, current_album.path, maxSize, false))
 			.attr("alt", current_photo.name)
 			.attr("title", current_photo.date)
-			.load(function() { $(this).css("width", "auto").css("height", "100%"); });
+			.load(scaleImage);
 		
 		var previousPhoto = current_album.photos[
 			(current_photo_index - 1 < 0) ? (current_album.photos.length - 1) : (current_photo_index - 1)
