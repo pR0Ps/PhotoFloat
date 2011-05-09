@@ -156,9 +156,23 @@ a:hover {
 	text-align: center;
 }
 
-#error {
+#error-overlay, #error-text {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
 	display: none;
+}
+#error-overlay {
+	background-color: #000000;
+	opacity: 0.8;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+	filter: alpha(opacity=80);
+}
+#error-text {
 	text-align: center;
+	position: fixed;
 	padding-top: 20%;
 	font-size: 4em;
 	font-weight: bold;

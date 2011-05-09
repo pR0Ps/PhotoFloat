@@ -49,6 +49,7 @@ $(document).ready(function() {
 		});
 	}
 	function albumLoaded(album) {
+		undie();
 		$("#loading").hide();
 		album_cache[cachePath(album.path)] = album;
 		current_album = album;
@@ -141,9 +142,10 @@ $(document).ready(function() {
 	function showPhoto() {
 		currentPhoto();
 		if (current_photo == null) {
-			$(document.body).html("Wrong picture.");
+			die();
 			return;
 		}
+		undie();
 		var maxSize = 800;
 		var width = current_photo.size[0];
 		var height = current_photo.size[1];
@@ -245,18 +247,21 @@ $(document).ready(function() {
 		$.ajax({
 			type: "GET",
 			url: "cache/" + album + ".json",
-			error: die,
 			success: callback
 		});
 	}
 	function albumThumbFinder(album, callback) {
 		fetchAlbumForThumb(album, function(fetchedAlbum) { albumForThumbIteration(fetchedAlbum, callback); });
 	}
+
 	function die() {
-		$("#album-view").hide();
-		$("#photo-view").hide();
-		$("#title").hide();
-		$("#error").fadeIn(5000);
+		$("#error-overlay").fadeIn(500);
+		$("#error-text").fadeIn(2500);
+		$("body, html").css("overflow", "hidden");
+	}
+	function undie() {
+		$("#error-text, #error-overlay").fadeOut(500);
+		$("body, html").css("overflow", "auto");
 	}
 	
 	var current_album_cache = null;
