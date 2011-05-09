@@ -67,20 +67,26 @@ $(document).ready(function() {
 	}
 	function setTitle() {
 		var title = "";
+		var documentTitle = "";
 		var components;
 		if (current_album.path.length == 0)
-			components = [document.title];
+			components = [original_title];
 		else {
 			components = current_album.path.split("/");
-			components.unshift(document.title);
+			components.unshift(original_title);
 		}
+		if (current_photo_cache != null)
+			documentTitle += trimExtension(current_photo.name);
 		var last = "";
 		for (var i = 0; i < components.length; ++i) {
+			if (i || current_photo_cache != null)
+				documentTitle += " \u00ab ";
 			if (i)
 				last += "/" + components[i];
 			if (i < components.length - 1 || current_photo_cache != null)
 				title += "<a href=\"#!/" + (i == 0 ? "" : cachePath(last.substring(1))) + "\">";
 			title += components[i];
+			documentTitle += components[components.length - 1 - i];
 			if (i < components.length - 1 || current_photo_cache != null) {
 				title += "</a>";
 				title += " &raquo; ";
@@ -89,6 +95,7 @@ $(document).ready(function() {
 		if (current_photo_cache != null)
 			title += trimExtension(current_photo.name);
 		$("#title").html(title);
+		document.title = documentTitle;
 	}
 	function showAlbum(populate) {
 		if (current_photo_cache == null && previous_photo_cache == null)
@@ -270,6 +277,7 @@ $(document).ready(function() {
 	var current_album = null;
 	var current_photo = null;
 	var current_photo_index = -1;
+	var original_title = document.title;
 	var album_cache = new Array();
 	$(window).hashchange(function() {
 		var new_album_cache = location.hash.substring(1);
