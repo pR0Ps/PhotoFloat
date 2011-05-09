@@ -125,6 +125,7 @@ $(document).ready(function() {
 		}
 		
 		if (current_photo_cache == null) {
+			$("#thumbs img").removeClass("current-thumb");
 			$("#album-view").removeClass("photo-view-container");
 			$("#subalbums").show();
 			$("#photo-view").hide();
@@ -221,6 +222,11 @@ $(document).ready(function() {
 			scroller.stop().animate({ scrollLeft: thumb.position().left + scroller.scrollLeft() - scroller.width() / 2 + thumb.width() / 2 }, "slow");
 		} else
 			$("html, body").stop().animate({ scrollTop: thumb.offset().top - $(window).height() / 2 + thumb.height() }, "slow");
+		
+		if (current_photo_cache != null) {
+			$("#thumbs img").removeClass("current-thumb");
+			thumb.addClass("current-thumb");
+		}
 	}
 	function currentPhoto() {
 		for (current_photo_index = 0; current_photo_index < current_album.photos.length; ++current_photo_index) {

@@ -38,6 +38,9 @@ a:hover {
 	margin: 0;
 	padding: 0;
 }
+.current-thumb {
+	/* do something to the current thumbnail */
+}
 #subalbums {
 	padding-top: 1.5em;
 }
