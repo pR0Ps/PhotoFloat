@@ -1,6 +1,6 @@
 $(window).load(function () {
 	window._gaq = window._gaq || [];
-	window._gaq.push(['_setAccount', 'UA-135234-2']);
+	window._gaq.push(['_setAccount', 'UA-XXXXXX-X']);
 	var ga = document.createElement('script');
 	ga.type = 'text/javascript';
 	ga.async = true;
