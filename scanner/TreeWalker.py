@@ -23,13 +23,17 @@ class TreeWalker:
 		cached_album = None
 		if os.path.exists(cache):
 			print "Has cache %s" % path
-			cached_album = Album.from_cache(cache)
-			if file_mtime(path) <= file_mtime(cache):
-				print "Album is fully cached"
-				cached = True
-				album = cached_album
-				for photo in album.photos:
-					self.all_photos.append(photo)
+			try:
+				cached_album = Album.from_cache(cache)
+				if file_mtime(path) <= file_mtime(cache):
+					print "Album is fully cached"
+					cached = True
+					album = cached_album
+					for photo in album.photos:
+						self.all_photos.append(photo)
+			except:
+				print "Cache is corrupted. Rescanning album."
+				cached_album = None
 		if not cached:
 			album = Album(path)
 		for entry in os.listdir(path):
