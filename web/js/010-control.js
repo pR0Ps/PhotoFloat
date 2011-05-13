@@ -49,14 +49,15 @@ $(document).ready(function() {
 		});
 	}
 	function albumLoaded(album) {
+		if (cachePath(album.path) != current_album_cache)
+			return;
 		undie();
 		$("#loading").hide();
 		album_cache[cachePath(album.path)] = album;
 		current_album = album;
 		if (current_photo_cache != null)
 			showPhoto();
-		if (cachePath(album.path) == current_album_cache)
-			showAlbum(true);
+		showAlbum(true);
 		setTitle();
 	}
 	function trimExtension(title) {
