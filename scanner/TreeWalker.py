@@ -1,5 +1,6 @@
 import os
 import os.path
+import sys
 from datetime import datetime
 from PhotoAlbum import Photo, Album, PhotoAlbumEncoder
 from CachePath import json_cache, set_cache_path_base, file_mtime
@@ -34,6 +35,10 @@ class TreeWalker:
 		for entry in os.listdir(path):
 			if entry[0] == '.':
 				continue
+			try:
+				entry = entry.decode(sys.getfilesystemencoding())
+			except:
+				pass
 			entry = os.path.join(path, entry)
 			if os.path.isdir(entry):
 				album.add_album(self.walk(entry))
@@ -83,6 +88,10 @@ class TreeWalker:
 				all_cache_entries[entry] = True
 		print "Searching stale cache entries."
 		for cache in os.listdir(self.cache_path):
+			try:
+				cache = cache.decode(sys.getfilesystemencoding())
+			except:
+				pass
 			if cache not in all_cache_entries:
 				print "Removing stale cache %s" % cache
 				os.unlink(os.path.join(self.cache_path, cache))
