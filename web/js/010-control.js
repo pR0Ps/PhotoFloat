@@ -43,6 +43,7 @@ $(document).ready(function() {
 		$("#loading").show();
 		$.ajax({
 			type: "GET",
+			dataType: "json",
 			url: "cache/" + current_album_cache + ".json",
 			error: die,
 			success: albumLoaded
@@ -260,6 +261,7 @@ $(document).ready(function() {
 		}
 		$.ajax({
 			type: "GET",
+			dataType: "json",
 			url: "cache/" + album + ".json",
 			success: callback
 		});
