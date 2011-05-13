@@ -50,11 +50,12 @@ $(document).ready(function() {
 		});
 	}
 	function albumLoaded(album) {
-		if (cachePath(album.path) != current_album_cache)
+		var albumCachePath = cachePath(album.path);
+		album_cache[albumCachePath] = album;
+		if (albumCachePath != current_album_cache)
 			return;
 		undie();
 		$("#loading").hide();
-		album_cache[cachePath(album.path)] = album;
 		current_album = album;
 		if (current_photo_cache != null)
 			showPhoto();
