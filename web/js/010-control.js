@@ -32,6 +32,11 @@ $(document).ready(function() {
 			suffix = size.toString();
 		return "cache/" + cachePath(path + "/" + image + "_" + suffix + ".jpg");
 	}
+	function properId(path) {
+		if (!path[0].match(/[a-zA-Z]/))
+			path = "a" + path;
+		return path.replace(/[^a-zA-Z0-9_:.\-]/g, "-");
+	}
 	function escapeId(id) {
 		return id.replace(/\./g, "\\.").replace(/,/g, "\\,");
 	}
@@ -114,7 +119,7 @@ $(document).ready(function() {
 			var thumbFinderList = new Array();
 			for (var i = current_album.albums.length - 1; i >= 0; --i) {
 				var path = cachePath(current_album.path + "/" + current_album.albums[i].path);
-				var id = "album-" + path;
+				var id = properId("album-" + path);
 				subalbums += "<a href=\"#!/" + path + "\"><div title=\"" + current_album.albums[i].date + "\" id=\"" + id + "\" class=\"album-button\">" + current_album.albums[i].path + "</div></a>";
 				thumbFinderList.push({ path: path, id: escapeId(id) });
 			}
@@ -217,7 +222,7 @@ $(document).ready(function() {
 			if (photo == null)
 				return;
 		}
-		var thumb = $("#thumb-" + escapeId(photo));
+		var thumb = $("#thumb-" + escapeId(properId(photo)));
 		if (!thumb.length)
 			return;
 		if (current_photo_cache != null) {
