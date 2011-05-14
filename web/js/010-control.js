@@ -173,12 +173,14 @@ $(document).ready(function() {
 			height = maxSize;
 		}
 		$(window).unbind("resize", scaleImage);
+		var photoSrc = imagePath(current_photo.name, current_album.path, maxSize, false);
 		$("#photo")
 			.attr("width", width).attr("height", height)
-			.attr("src", imagePath(current_photo.name, current_album.path, maxSize, false))
+			.attr("src", photoSrc)
 			.attr("alt", current_photo.name)
 			.attr("title", current_photo.date)
 			.load(scaleImage);
+		$("head").append("<link rel=\"image_src\" href=\"" + photoSrc + "\" />");
 		
 		var previousPhoto = current_album.photos[
 			(current_photo_index - 1 < 0) ? (current_album.photos.length - 1) : (current_photo_index - 1)
@@ -307,6 +309,7 @@ $(document).ready(function() {
 	var original_title = document.title;
 	var album_cache = new Array();
 	$(window).hashchange(function() {
+		$("link[rel=image_src]").remove();
 		var new_album_cache = window.hashUrl();
 		var index = new_album_cache.lastIndexOf("/");
 		if (index != -1 && index != new_album_cache.length - 1) {
