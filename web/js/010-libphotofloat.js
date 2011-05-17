@@ -46,7 +46,7 @@
 		};
 		PhotoFloat.trimExtension = function(name) {
 			var index = name.lastIndexOf(".");
-			if (index != -1)
+			if (index !== -1)
 				return name.substring(0, index)
 			return name;
 		};
@@ -131,7 +131,7 @@
 			if (!hash.length) {
 				album = PhotoFloat.cachePath("root");
 				photo = null;
-			} else if (index != -1 && index != hash.length - 1) {
+			} else if (index !== -1 && index !== hash.length - 1) {
 				photo = hash.substring(index + 1);
 				album = hash.substring(0, index);
 			} else {
@@ -140,9 +140,9 @@
 			}
 			this.album(album, function(theAlbum) {
 				var i = -1;
-				if (photo != null) {
+				if (photo !== null) {
 					for (i = 0; i < theAlbum.photos.length; ++i) {
-						if (PhotoFloat.cachePath(theAlbum.photos[i].name) == photo) {
+						if (PhotoFloat.cachePath(theAlbum.photos[i].name) === photo) {
 							photo = theAlbum.photos[i];
 							break;
 						}
