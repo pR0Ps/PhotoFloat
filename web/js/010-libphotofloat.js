@@ -85,7 +85,7 @@
 				cacheKey = subalbum;
 			else
 				cacheKey = PhotoFloat.cachePath(subalbum.parent.path + "/" + subalbum.path);
-			if (cacheKey in this.albumCache) {
+			if (this.albumCache.hasOwnProperty(cacheKey)) {
 				callback(this.albumCache[cacheKey]);
 				return;
 			}
