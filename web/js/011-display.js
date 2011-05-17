@@ -135,9 +135,9 @@ $(document).ready(function() {
 			$(window).bind("resize", scaleImage);
 		var container = $("#photo-view");
 		if (image.css("width") != "100%" && container.height() * image.width() / image.height() > container.width())
-			image.css("width", "100%").css("height", "auto");
+			image.css("width", "100%").css("height", "auto").css("position", "absolute").css("bottom", 0);
 		else if (image.css("height") != "100%")
-			image.css("height", "100%").css("width", "auto");
+			image.css("height", "100%").css("width", "auto").css("position", "").css("bottom", "");
 	}
 	function showPhoto() {
 		var maxSize = 800;
