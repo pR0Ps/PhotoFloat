@@ -1,4 +1,55 @@
 $(document).ready(function() {
+	
+	/* 
+	 * The display is not yet object oriented. It's procedural code
+	 * broken off into functions. It makes use of libphotofloat's
+	 * PhotoFloat class for the network and management logic.
+	 * 
+	 * All of this could potentially be object oriented, but presently
+	 * it should be pretty readable and sufficient. The only thing to
+	 * perhaps change in the future would be to consolidate calls to
+	 * jQuery selectors. And perhaps it'd be nice to move variable
+	 * declarations to the top, to stress that JavaScript scope is
+	 * for an entire function and always hoisted.
+	 * 
+	 * None of the globals here polutes the global scope, as everything
+	 * is enclosed in an anonymous function.
+	 * 
+	 */
+	
+	
+	/* Globals */
+	
+	var currentAlbum = null;
+	var currentPhoto = null;
+	var currentPhotoIndex = -1;
+	var previousAlbum = null;
+	var previousPhoto = null;
+	var originalTitle = document.title;
+	var photoFloat = new PhotoFloat();
+	
+	
+	/* Entry point for most events */
+	
+	function hashParsed(album, photo, photoIndex) {
+		undie();
+		$("#loading").hide();
+		if (album == currentAlbum && photo == currentPhoto)
+			return;
+		previousAlbum = currentAlbum;
+		previousPhoto = currentPhoto;
+		currentAlbum = album;
+		currentPhoto = photo;
+		currentPhotoIndex = photoIndex;
+		setTitle();
+		showAlbum(previousAlbum != currentAlbum);
+		if (photo != null)
+			showPhoto();
+	}
+	
+	
+	/* Displays */
+	
 	function setTitle() {
 		var title = "";
 		var documentTitle = "";
@@ -171,7 +222,10 @@ $(document).ready(function() {
 			thumb.addClass("current-thumb");
 		}
 	}
-
+	
+	
+	/* Error displays */
+	
 	function die() {
 		$("#error-overlay").fadeTo(500, 0.8);
 		$("#error-text").fadeIn(2500);
@@ -182,29 +236,9 @@ $(document).ready(function() {
 		$("body, html").css("overflow", "auto");
 	}
 	
-	function hashParsed(album, photo, photoIndex) {
-		undie();
-		$("#loading").hide();
-		if (album == currentAlbum && photo == currentPhoto)
-			return;
-		previousAlbum = currentAlbum;
-		previousPhoto = currentPhoto;
-		currentAlbum = album;
-		currentPhoto = photo;
-		currentPhotoIndex = photoIndex;
-		setTitle();
-		showAlbum(previousAlbum != currentAlbum);
-		if (photo != null)
-			showPhoto();
-	}
 	
-	var currentAlbum = null;
-	var currentPhoto = null;
-	var currentPhotoIndex = -1;
-	var previousAlbum = null;
-	var previousPhoto = null;
-	var originalTitle = document.title;
-	var photoFloat = new PhotoFloat();
+	/* Event listeners */
+	
 	$(window).hashchange(function() {
 		$("#loading").show();
 		$("link[rel=image_src]").remove();
