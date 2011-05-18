@@ -47,7 +47,7 @@
 		PhotoFloat.trimExtension = function(name) {
 			var index = name.lastIndexOf(".");
 			if (index !== -1)
-				return name.substring(0, index)
+				return name.substring(0, index);
 			return name;
 		};
 		PhotoFloat.cleanHash = function(hash) {
