@@ -1,6 +1,17 @@
 import os.path
 from datetime import datetime
 
+def message(category, text):
+	if message.level <= 0:
+		sep = "  "
+	else:
+		sep = "--"
+	print "%s %s%s[%s]%s%s" % (datetime.now().isoformat(), max(0, message.level) * "  |", sep, category, max(1, (14 - len(category))) * " ", text)
+message.level = -1
+def next_level():
+	message.level += 1
+def back_level():
+	message.level -= 1
 def set_cache_path_base(base):
 	trim_base.base = base
 def untrim_base(path):

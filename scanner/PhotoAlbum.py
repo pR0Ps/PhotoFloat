@@ -110,6 +110,8 @@ class Photo(object):
 		self.is_valid = True
 		try:
 			mtime = file_mtime(path)
+		except KeyboardInterrupt:
+			raise
 		except:
 			self.is_valid = False
 			return
@@ -121,16 +123,20 @@ class Photo(object):
 		
 		try:
 			image = Image.open(path)
+		except KeyboardInterrupt:
+			raise
 		except:
 			self.is_valid = False
 			return
 		self._metadata(image)
-		self._thumbnails(image, thumb_path)
+		self._thumbnails(image, thumb_path, path)
 	def _metadata(self, image):
 		self._attributes["size"] = image.size
 		self._orientation = 1
 		try:
 			info = image._getexif()
+		except KeyboardInterrupt:
+			raise
 		except:
 			return
 		if not info:
@@ -144,6 +150,8 @@ class Photo(object):
 				if isinstance(decoded, str) and decoded.startswith("DateTime"):
 					try:
 						value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
+					except KeyboardInterrupt:
+						raise
 					except:
 						continue
 			exif[decoded] = value
@@ -175,6 +183,8 @@ class Photo(object):
 		if "Flash" in exif and exif["Flash"] in self._metadata.flash_dictionary:
 			try:
 				self._attributes["flash"] = self._metadata.flash_dictionary[exif["Flash"]]
+			except KeyboardInterrupt:
+				raise
 			except:
 				pass
 		if "ExposureProgram" in exif and exif["ExposureProgram"] < len(self._metadata.exposure_list):
@@ -197,19 +207,26 @@ class Photo(object):
 	_metadata.exposure_list = ["Not Defined", "Manual", "Program AE", "Aperture-priority AE", "Shutter speed priority AE", "Creative (Slow speed)", "Action (High speed)", "Portrait", "Landscape", "Bulb"]
 	_metadata.orientation_list = ["Horizontal (normal)", "Mirror horizontal", "Rotate 180", "Mirror vertical", "Mirror horizontal and rotate 270 CW", "Rotate 90 CW", "Mirror horizontal and rotate 90 CW", "Rotate 270 CW"]
 		
-	def _thumbnail(self, image, thumb_path, size, square=False):
+	def _thumbnail(self, image, thumb_path, original_path, size, square=False):
 		thumb_path = os.path.join(thumb_path, image_cache(self._path, size, square))
-		print "Thumbing %s" % thumb_path
+		info_string = "%s -> %spx" % (os.path.basename(original_path), str(size))
+		if square:
+			info_string += ", square"
+		message("thumbing", info_string)
 		if os.path.exists(thumb_path) and file_mtime(thumb_path) >= self._attributes["dateTimeFile"]:
 			return
 		gc.collect()
 		try:
 			image = image.copy()
+		except KeyboardInterrupt:
+			raise
 		except:
 			try:
 				image = image.copy() # we try again to work around PIL bug
+			except KeyboardInterrupt:
+				raise
 			except:
-				print "Image is corrupted. %s will not be created." % thumb_path
+				message("corrupt image", os.path.basename(original_path))
 				return
 		if square:
 			if image.size[0] > image.size[1]:
@@ -227,11 +244,14 @@ class Photo(object):
 		image.thumbnail((size, size), Image.ANTIALIAS)
 		try:
 			image.save(thumb_path, "JPEG")
+		except KeyboardInterrupt:
+			os.unlink(thumb_path)
+			raise
 		except:
-			print "Could not thumbnail %s" % thumb_path
+			message("save failure", os.path.basename(thumb_path))
 			os.unlink(thumb_path)
 		
-	def _thumbnails(self, image, thumb_path):
+	def _thumbnails(self, image, thumb_path, original_path):
 		mirror = image
 		if self._orientation == 2:
 			# Vertical Mirror
@@ -255,7 +275,7 @@ class Photo(object):
 			# Rotation 90
 			mirror = image.transpose(Image.ROTATE_90)
 		for size in Photo.thumb_sizes:
-			self._thumbnail(mirror, thumb_path, size[0], size[1])
+			self._thumbnail(mirror, thumb_path, original_path, size[0], size[1])
 	@property
 	def name(self):
 		return os.path.basename(self._path)
@@ -294,6 +314,8 @@ class Photo(object):
 			if key.startswith("dateTime"):
 				try:
 					dictionary[key] = datetime.strptime(dictionary[key], "%a %b %d %H:%M:%S %Y")
+				except KeyboardInterrupt:
+					raise
 				except:
 					pass
 		return Photo(path, None, dictionary)
