@@ -120,6 +120,11 @@ $(document).ready(function() {
 			subalbumsElement = $("#subalbums");
 			subalbumsElement.empty();
 			subalbumsElement.append.apply(subalbumsElement, subalbums);
+
+			if (currentAlbum.albums.length > 1)
+				subalbumsElement.insertBefore(thumbsElement);
+			else
+				thumbsElement.insertBefore(subalbumsElement);
 		}
 		
 		if (currentPhoto === null) {

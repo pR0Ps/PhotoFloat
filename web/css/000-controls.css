@@ -30,6 +30,7 @@ a:hover {
 	padding: 1em;
 }
 #thumbs {
+	clear: both;
 	line-height: 0;
 }
 
