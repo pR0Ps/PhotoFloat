@@ -194,11 +194,15 @@ $(document).ready(function() {
 		if (typeof currentPhoto.size !== "undefined") text += "<tr><td>Resolution</td><td>" + currentPhoto.size[0] + " x " + currentPhoto.size[1] + "</td></tr>";
 		if (typeof currentPhoto.aperture !== "undefined") text += "<tr><td>Aperture</td><td> f/" + getDecimal(currentPhoto.aperture) + "</td></tr>";
 		if (typeof currentPhoto.focalLength !== "undefined") text += "<tr><td>Focal Length</td><td>" + getDecimal(currentPhoto.focalLength) + " mm</td></tr>";
+		if (typeof currentPhoto.subjectDistanceRange !== "undefined") text += "<tr><td>Subject Distance Range</td><td>" + currentPhoto.subjectDistanceRange + "</td></tr>";
 		if (typeof currentPhoto.iso !== "undefined") text += "<tr><td>ISO</td><td>" + currentPhoto.iso + "</td></tr>";
+		if (typeof currentPhoto.sceneCaptureType !== "undefined") text += "<tr><td>Scene Capture Type</td><td>" + currentPhoto.sceneCaptureType + "</td></tr>";
 		if (typeof currentPhoto.exposureTime !== "undefined") text += "<tr><td>Exposure Time</td><td>" + getDecimal(currentPhoto.exposureTime) + " sec</td></tr>";
 		if (typeof currentPhoto.exposureProgram !== "undefined") text += "<tr><td>Exposure Program</td><td>" + currentPhoto.exposureProgram + "</td></tr>";
 		if (typeof currentPhoto.exposureCompensation !== "undefined") text += "<tr><td>Exposure Compensation</td><td>" + getDecimal(currentPhoto.exposureCompensation) + "</td></tr>";
 		if (typeof currentPhoto.spectralSensitivity !== "undefined") text += "<tr><td>Spectral Sensitivity</td><td>" + currentPhoto.spectralSensitivity + "</td></tr>";
+		if (typeof currentPhoto.sensingMethod !== "undefined") text += "<tr><td>Sensing Method</td><td>" + currentPhoto.sensingMethod + "</td></tr>";
+		if (typeof currentPhoto.lightSource !== "undefined") text += "<tr><td>Light Source</td><td>" + currentPhoto.lightSource + "</td></tr>";
 		if (typeof currentPhoto.flash !== "undefined") text += "<tr><td>Flash</td><td>" + currentPhoto.flash + "</td></tr>";
 		if (typeof currentPhoto.orientation !== "undefined") text += "<tr><td>Orientation</td><td>" + currentPhoto.orientation + "</td></tr>";
 		text += "</table>";
