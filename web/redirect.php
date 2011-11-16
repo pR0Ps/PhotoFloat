@@ -15,7 +15,7 @@ function cachePath($path) {
 	return $path;
 }
 
-$url = $_SERVER["SCRIPT_URL"];
+$url = str_replace("\b", "", str_replace("\r", "", str_replace("\n", "", $_SERVER["SCRIPT_URL"])));
 if ($url[strlen($url) - 1] == '/')
 	$url = substr($url, 0, strlen($url) - 1);
 
