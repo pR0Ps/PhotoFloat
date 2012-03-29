@@ -146,7 +146,7 @@ class Photo(object):
 		for tag, value in info.items():
 			decoded = TAGS.get(tag, tag)
 			if isinstance(value, str):
-				value = value.strip()
+				value = value.strip().partition("\x00")[0]
 				if isinstance(decoded, str) and decoded.startswith("DateTime"):
 					try:
 						value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
