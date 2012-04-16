@@ -145,6 +145,8 @@
 				hash = hash.substring(1);
 			else if (hash[0] === "/")
 				hash = hash.substring(1);
+			else if (hash.substring(0, 3) === "%21")
+				hash = hash.substring(3);
 			else if (hash[hash.length - 1] === "/")
 				hash = hash.substring(0, hash.length - 1);
 			else
