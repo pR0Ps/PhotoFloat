@@ -79,6 +79,7 @@ a:hover {
 }
 #photo {
 	border: 0;
+	left: 0;
 }
 #photo-view {
 	position: absolute;
