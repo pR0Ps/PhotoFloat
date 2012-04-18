@@ -77,6 +77,17 @@ a:hover {
 #next {
 	right: 0.1em;
 }
+#fullscreen {
+	display: none;
+	position: absolute;
+	opacity: 0.50;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+	filter: alpha(opacity=50);
+	margin-top: -0.25em;
+	margin-left: -1em;
+	font-size: 2em;
+	cursor: pointer;
+}
 #photo {
 	border: 0;
 	left: 0;

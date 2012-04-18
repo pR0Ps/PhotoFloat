@@ -153,7 +153,7 @@ $(document).ready(function() {
 	}
 	function showPhoto() {
 		var maxSize, width, height, photoSrc, previousPhoto, nextPhoto, nextLink, text;
-		maxSize = 800;
+		maxSize = 1024;
 		width = currentPhoto.size[0];
 		height = currentPhoto.size[1];
 		if (width > height) {
@@ -288,12 +288,19 @@ $(document).ready(function() {
 	$("#photo-box").mouseleave(function() {
 		$("#photo-links").stop().fadeOut("slow");
 	});
-	$("#next, #back").mouseenter(function() {
+	$("#next, #back, #fullscreen").mouseenter(function() {
 		$(this).fadeTo("slow", 1);
 	});
 	$("#next, #back").mouseleave(function() {
 		$(this).fadeTo("slow", 0.35);
 	});
+	if ($.support.fullscreen) {
+		$("#fullscreen").show().click(function() {
+			$("#photo").fullScreen();
+		}).mouseleave(function() {
+			$(this).fadeTo("slow", 0.50);
+		});
+	}
 	$("#metadata-link").click(function() {
 		if (!$("#metadata").is(":visible"))
 			$("#metadata").stop()
