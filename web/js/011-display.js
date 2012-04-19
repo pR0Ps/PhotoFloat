@@ -27,6 +27,7 @@ $(document).ready(function() {
 	var previousPhoto = null;
 	var originalTitle = document.title;
 	var photoFloat = new PhotoFloat();
+	var maxSize = 800;
 	
 	
 	/* Displays */
@@ -152,8 +153,7 @@ $(document).ready(function() {
 			image.css("height", "100%").css("width", "auto").css("position", "").css("bottom", "");
 	}
 	function showPhoto() {
-		var maxSize, width, height, photoSrc, previousPhoto, nextPhoto, nextLink, text;
-		maxSize = 1024;
+		var width, height, photoSrc, previousPhoto, nextPhoto, nextLink, text;
 		width = currentPhoto.size[0];
 		height = currentPhoto.size[1];
 		if (width > height) {
@@ -288,17 +288,19 @@ $(document).ready(function() {
 	$("#photo-box").mouseleave(function() {
 		$("#photo-links").stop().fadeOut("slow");
 	});
-	$("#next, #back, #fullscreen").mouseenter(function() {
+	$("#next, #back").mouseenter(function() {
 		$(this).stop().fadeTo("slow", 1);
 	});
 	$("#next, #back").mouseleave(function() {
 		$(this).stop().fadeTo("slow", 0.35);
 	});
 	if ($.support.fullscreen) {
+		$("#fullscreen-divider").show();
 		$("#fullscreen").show().click(function() {
-			$("#photo").fullScreen();
-		}).mouseleave(function() {
-			$(this).stop().fadeTo("slow", 0.50);
+			$("#photo").fullScreen({callback: function(isFullscreen) {
+				maxSize = isFullscreen ? 1024 : 800;
+				showPhoto();
+			}});
 		});
 	}
 	$("#metadata-link").click(function() {
