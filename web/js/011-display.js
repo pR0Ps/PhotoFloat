@@ -289,16 +289,16 @@ $(document).ready(function() {
 		$("#photo-links").stop().fadeOut("slow");
 	});
 	$("#next, #back, #fullscreen").mouseenter(function() {
-		$(this).fadeTo("slow", 1);
+		$(this).stop().fadeTo("slow", 1);
 	});
 	$("#next, #back").mouseleave(function() {
-		$(this).fadeTo("slow", 0.35);
+		$(this).stop().fadeTo("slow", 0.35);
 	});
 	if ($.support.fullscreen) {
 		$("#fullscreen").show().click(function() {
 			$("#photo").fullScreen();
 		}).mouseleave(function() {
-			$(this).fadeTo("slow", 0.50);
+			$(this).stop().fadeTo("slow", 0.50);
 		});
 	}
 	$("#metadata-link").click(function() {
