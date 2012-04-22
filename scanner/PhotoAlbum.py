@@ -260,7 +260,7 @@ class Photo(object):
 			gc.collect()
 		image.thumbnail((size, size), Image.ANTIALIAS)
 		try:
-			image.save(thumb_path, "JPEG")
+			image.save(thumb_path, "JPEG", quality=88)
 		except KeyboardInterrupt:
 			os.unlink(thumb_path)
 			raise
