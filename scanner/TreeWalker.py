@@ -8,8 +8,8 @@ import json
 
 class TreeWalker:
 	def __init__(self, album_path, cache_path):
-		self.album_path = os.path.abspath(album_path)
-		self.cache_path = os.path.abspath(cache_path)
+		self.album_path = os.path.abspath(album_path).decode(sys.getfilesystemencoding())
+		self.cache_path = os.path.abspath(cache_path).decode(sys.getfilesystemencoding())
 		set_cache_path_base(self.album_path)
 		self.all_albums = list()
 		self.all_photos = list()
