@@ -98,9 +98,16 @@ $(document).ready(function() {
 			for (i = 0; i < currentAlbum.photos.length; ++i) {
 				link = $("<a href=\"#!/" + photoFloat.photoHash(currentAlbum, currentAlbum.photos[i]) + "\"></a>");
 				image = $("<img title=\"" + photoFloat.trimExtension(currentAlbum.photos[i].name) + "\" alt=\"" + photoFloat.trimExtension(currentAlbum.photos[i].name) + "\" src=\"" + photoFloat.photoPath(currentAlbum, currentAlbum.photos[i], 150, true) + "\" height=\"150\" width=\"150\" />");
-				link.append(image);
 				image.get(0).photo = currentAlbum.photos[i];
+				link.append(image);
 				photos.push(link);
+				(function(theLink, theImage, theAlbum) {
+					theImage.error(function() {
+						photos.splice(photos.indexOf(theLink), 1);
+						theLink.remove();
+						theAlbum.photos.splice(theAlbum.photos.indexOf(theImage.get(0).photo), 1);
+					});
+				})(link, image, currentAlbum);
 			}
 			thumbsElement = $("#thumbs");
 			thumbsElement.empty();
@@ -112,11 +119,16 @@ $(document).ready(function() {
 				image = $("<div title=\"" + currentAlbum.albums[i].date + "\" class=\"album-button\">" + currentAlbum.albums[i].path + "</div>");
 				link.append(image);
 				subalbums.push(link);
-				(function(theAlbum, theImage) {
+				(function(theContainer, theAlbum, theImage, theLink) {
 					photoFloat.albumPhoto(theAlbum, function(album, photo) {
 						theImage.css("background-image", "url(" + photoFloat.photoPath(album, photo, 150, true) + ")");
+					}, function error() {
+						theContainer.albums.splice(currentAlbum.albums.indexOf(theAlbum), 1);
+						theLink.remove();
+						subalbums.splice(subalbums.indexOf(theLink), 1);
+
 					});
-				})(currentAlbum.albums[i], image);
+				})(currentAlbum, currentAlbum.albums[i], image, link);
 			}
 			subalbumsElement = $("#subalbums");
 			subalbumsElement.empty();
