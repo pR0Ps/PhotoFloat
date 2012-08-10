@@ -34,8 +34,11 @@
 				callback(album);
 			}
 		};
-		if (typeof error !== "undefined" && error !== null)
-			ajaxOptions.error = error;
+		if (typeof error !== "undefined" && error !== null) {
+			ajaxOptions.error = function(jqXHR, textStatus, errorThrown) {
+				error(jqXHR.status);
+			};
+		}
 		$.ajax(ajaxOptions);
 	};
 	PhotoFloat.prototype.albumPhoto = function(subalbum, callback, error) {
@@ -84,6 +87,19 @@
 			}
 			callback(theAlbum, photo, i);
 		}, error);
+	};
+	PhotoFloat.prototype.authenticate = function(password, result) {
+		$.ajax({
+			type: "GET",
+			dataType: "text",
+			url: "auth?password=" + password,
+			success: function() {
+				result(true);
+			},
+			error: function() {
+				result(false);
+			}
+		});
 	};
 	
 	/* static functions */

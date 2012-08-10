@@ -228,13 +228,17 @@ $(document).ready(function() {
 	
 	/* Error displays */
 	
-	function die() {
+	function die(error) {
+		if (error == 403) {
+			$("#auth-text").fadeIn(1000);
+			$("#password").focus();
+		} else
+			$("#error-text").fadeIn(2500);
 		$("#error-overlay").fadeTo(500, 0.8);
-		$("#error-text").fadeIn(2500);
 		$("body, html").css("overflow", "hidden");
 	}
 	function undie() {
-		$("#error-text, #error-overlay").fadeOut(500);
+		$("#error-text, #error-overlay, #auth-text").fadeOut(500);
 		$("body, html").css("overflow", "auto");
 	}
 		
@@ -331,5 +335,18 @@ $(document).ready(function() {
 				$(this).hide();
 				$("#metadata-link").text($("#metadata-link").text().replace("hide", "show"));
 			});
+	});
+	$("#auth-form").submit(function() {
+		var password = $("#password");
+		password.css("background-color", "rgb(128, 128, 200)");
+		photoFloat.authenticate(password.val(), function(success) {
+			password.val("");
+			if (success) {
+				password.css("background-color", "rgb(200, 200, 200)");
+				$(window).hashchange();
+			} else
+				password.css("background-color", "rgb(255, 64, 64)");
+		});
+		return false;
 	});
 });
