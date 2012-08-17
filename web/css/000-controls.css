@@ -173,7 +173,7 @@ a:hover {
 	text-shadow: rgba(0,0,0,0.5) -1px 0, rgba(0,0,0,0.3) 0 -1px, rgba(255,255,255,0.5) 0 1px, rgba(0,0,0,0.3) -1px -2px;
 	color: #FFAD27;
 }
-#error-overlay, #error-text {
+#error-overlay, #error-text, #auth-text {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -184,11 +184,22 @@ a:hover {
 #error-overlay {
 	background-color: #000000;
 }
-#error-text {
-	text-align: center;
+#error-text, #auth-text {
 	position: fixed;
 	padding-top: 20%;
+	text-align: center;
+}
+#error-text {
 	font-size: 4em;
+	font-weight: bold;
+	font-style: italic;
+}
+#auth-text input {
+	color: rgb(0, 0, 0);
+	background-color: rgb(200, 200, 200);
+	border: 0;
+	font-family: inherit;
+	font-size: 2em;
 	font-weight: bold;
 	font-style: italic;
 }
