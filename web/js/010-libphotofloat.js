@@ -106,7 +106,7 @@
 	PhotoFloat.cachePath = function(path) {
 		if (path === "")
 			return "root";
-		if (path[0] === "/")
+		if (path.charAt(0) === "/")
 			path = path.substring(1);
 		path = path
 			.replace(/ /g, "_")
@@ -155,15 +155,15 @@
 	};
 	PhotoFloat.cleanHash = function(hash) {
 		while (hash.length) {
-			if (hash[0] === "#")
+			if (hash.charAt(0) === "#")
 				hash = hash.substring(1);
-			else if (hash[0] === "!")
+			else if (hash.charAt(0) === "!")
 				hash = hash.substring(1);
-			else if (hash[0] === "/")
+			else if (hash.charAt(0) === "/")
 				hash = hash.substring(1);
 			else if (hash.substring(0, 3) === "%21")
 				hash = hash.substring(3);
-			else if (hash[hash.length - 1] === "/")
+			else if (hash.charAt(hash.length - 1) === "/")
 				hash = hash.substring(0, hash.length - 1);
 			else
 				break;
