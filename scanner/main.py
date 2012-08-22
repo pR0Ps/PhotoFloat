@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 
 from TreeWalker import TreeWalker
-from sys import argv, exit
 from CachePath import message
+import sys
 
 def main():
-	if len(argv) != 3:
-		print "usage: %s ALBUM_PATH CACHE_PATH" % argv[0]
+	reload(sys)
+	sys.setdefaultencoding("UTF-8")
+
+	if len(sys.argv) != 3:
+		print "usage: %s ALBUM_PATH CACHE_PATH" % sys.argv[0]
 		return
 	try:
-		TreeWalker(argv[1], argv[2])
+		TreeWalker(sys.argv[1], sys.argv[2])
 	except KeyboardInterrupt:
 		message("keyboard", "CTRL+C pressed, quitting.")
-		exit(-97)
+		sys.exit(-97)
 	
 if __name__ == "__main__":
 	main()
