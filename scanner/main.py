@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 from TreeWalker import TreeWalker
 from CachePath import message
 import sys
+import os
 
 def main():
 	reload(sys)
@@ -12,6 +13,7 @@ def main():
 		print "usage: %s ALBUM_PATH CACHE_PATH" % sys.argv[0]
 		return
 	try:
+		os.umask(022)
 		TreeWalker(sys.argv[1], sys.argv[2])
 	except KeyboardInterrupt:
 		message("keyboard", "CTRL+C pressed, quitting.")

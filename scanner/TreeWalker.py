@@ -88,12 +88,6 @@ class TreeWalker:
 		fp = open(os.path.join(self.cache_path, "all_photos.json"), 'w')
 		json.dump(photo_list, fp, cls=PhotoAlbumEncoder)
 		fp.close()
-		photo_list.reverse()
-		message("caching", "latest photos path list")
-		fp = open(os.path.join(self.cache_path, "latest_photos.json"), 'w')
-		json.dump(photo_list[0:27], fp, cls=PhotoAlbumEncoder)
-		fp.close()
-		
 	def remove_stale(self):
 		message("cleanup", "building stale list")
 		all_cache_entries = { "all_photos.json": True, "latest_photos.json": True }

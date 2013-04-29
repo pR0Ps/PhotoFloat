@@ -92,7 +92,7 @@
 		$.ajax({
 			type: "GET",
 			dataType: "text",
-			url: "auth?password=" + password,
+			url: "auth?username=photos&password=" + password,
 			success: function() {
 				result(true);
 			},
