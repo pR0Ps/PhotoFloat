@@ -8,4 +8,4 @@
 			cache.push(cacheImage);
 		}
 	}
-})(jQuery)
+})(jQuery);
