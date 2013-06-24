@@ -10,7 +10,11 @@ def main():
 	sys.setdefaultencoding("UTF-8")
 
 	if len(sys.argv) < 2:
-		print "usage: %s ALBUM_PATH [ CACHE_PATH ]" % sys.argv[0]
+		print """usage: %s <album> [ <cache> ]
+
+<album>: a directory where you store a hierarchy of album folders
+<cache>: where photofloat will generate thumbnails and other data (default: <album>/../cache)
+""" % sys.argv[0]
 		return
         if len(sys.argv) < 3:
                 sys.argv.append('%s/../cache' % sys.argv[1])
