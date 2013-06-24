@@ -9,9 +9,11 @@ def main():
 	reload(sys)
 	sys.setdefaultencoding("UTF-8")
 
-	if len(sys.argv) != 3:
-		print "usage: %s ALBUM_PATH CACHE_PATH" % sys.argv[0]
+	if len(sys.argv) < 2:
+		print "usage: %s ALBUM_PATH [ CACHE_PATH ]" % sys.argv[0]
 		return
+        if len(sys.argv) < 3:
+                sys.argv.append('%s/../cache' % sys.argv[1])
 	try:
 		os.umask(022)
 		TreeWalker(sys.argv[1], sys.argv[2])
