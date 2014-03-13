@@ -14,7 +14,7 @@ PhotoFloat consists of two segments – a Python script and a JavaScript applica
 
 The Python script scans a directory tree of images, whereby each directory constitutes an album. It then populates a second folder, known as the cache folder with statically generated JSON files and thumbnails. The scanner extracts metadata from EXIF tags in JPEG photos. PhotoFloat is smart about file and directory modification time, so you are free to run the scanner script as many times as you want, and it will be very fast if there are few or zero changes since the last time you ran it.
 
-The JavaScript application consists of a single index.html file with a single scripts.min.js and a single styles.min.css. It fetches the statically generated JSON files and thumbnails on the fly to create a speedy interface. Features include:
+The JavaScript application consists of a single `index.html` file with a single `scripts.min.js` and a single `styles.min.css`. It fetches the statically generated JSON files and thumbnails on the fly from the `cache` folder to create a speedy interface. Features include:
 
 * Animations to make the interface feel nice
 * Separate album view and photo view
@@ -39,7 +39,7 @@ It is, essentially, the slickest and fastest, most minimal but still well-featur
 
 #### Download the source code from the git repository:
 
-    $ git clone http://git.zx2c4.com/PhotoFloat
+    $ git clone git://git.zx2c4.com/PhotoFloat
     $ cd PhotoFloat
 
 #### Change or delete the Google Analytics ID tracker:
@@ -81,7 +81,7 @@ After it finishes, you will be all set. Simply have your web server serve pages 
 
 ## Optional: Server-side Authentication
 
-The JavaScript application uses a very simple API to determine if a photo can be viewed or not. If a json file returns error 403, the album is hidden from view. To authenticate, POST a username and a password to /auth. If unsuccessful, 403 is returned. If successful, 200 is returned, and the previously denied json files may now be requested. If an unauthorized album is directly requested in a URL when the page loads, an authentication box is shown.
+The JavaScript application uses a very simple API to determine if a photo can be viewed or not. If a JSON file returns error `403`, the album is hidden from view. To authenticate, `POST` a username and a password to `/auth`. If unsuccessful, `403` is returned. If successful, `200` is returned, and the previously denied json files may now be requested. If an unauthorized album is directly requested in a URL when the page loads, an authentication box is shown.
 
 PhotoFloat ships with an optional server side component called FloatApp to faciliate this, which lives in `scanner/floatapp`. It is a simple Flask-based Python web application.
 
@@ -90,7 +90,7 @@ PhotoFloat ships with an optional server side component called FloatApp to facil
     $ cd scanner/floatapp
     $ vim app.cfg
 
-Give this file a correct username and password, for both an admin user and a photo user, as well as a secret token. The admin user is allowed to call "/scan", which automatically runs the scanner script mentioned in the previous section.
+Give this file a correct username and password, for both an admin user and a photo user, as well as a secret token. The admin user is allowed to call `/scan`, which automatically runs the scanner script mentioned in the previous section.
 
 #### Decide which albums or photos are protected:
 
@@ -160,7 +160,13 @@ Note that the `internal-*` paths must match that of `app.cfg`. This makes use of
 Some webpages may desire to optionally render pages server side when special query strings are attached, so that GoogleBot may index pages. PhotoFloat supports the [AJAX crawl specification](https://developers.google.com/webmasters/ajax-crawling/).
 
     location / {
-            include server-execute-phantom.conf;
+            location = / {
+                include uwsgi_params;
+                uwsgi_param HTTP_X_SE_ORIGINAL_URL $scheme://$host$request_uri;
+                if ($args ~* _escaped_fragment_=) {
+                    uwsgi_pass unix:/var/run/uwsgi-apps/server-execute-phantom.socket;
+                }
+            }
             index index.html;
             root /var/www/htdocs/photos.jasondonenfeld.com;
     }
@@ -170,7 +176,7 @@ This makes use of the [Server Execute Phantom project](http://git.zx2c4.com/serv
 
 ## Optional: Deployment Makefiles
 
-Both the scanner and the webpage have a `make deploy` target, and the scanner has a `make scan` target, to automatically deploy assets to a remote server and run the scanner. For use, customize deployment-config.mk in the root of the project, and carefully read the `Makefiles` to learn what's happening.
+Both the scanner and the webpage have a `make deploy` target, and the scanner has a `make scan` target, to automatically deploy assets to a remote server and run the scanner. For use, customize `deployment-config.mk` in the root of the project, and carefully read the `Makefile`s to learn what's happening.
 
 ## Mailing List & Suggestions
 
