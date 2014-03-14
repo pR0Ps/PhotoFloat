@@ -7,7 +7,7 @@ SSH_OPTS := -q -o ControlMaster=auto -o ControlPath=.ssh-deployment.sock
 
 scan:
 	@echo "    SCAN    $(WEB_SERVER)"
-	@curl "$(WEB_SERVER_URL)/scan?username=$(subst $\",,$(ADMIN_USERNAME))&password=$(subst $\",,$(ADMIN_USERNAME))"
+	@curl "$(WEB_SERVER_URL)/scan?username=$(subst $\",,$(ADMIN_USERNAME))&password=$(subst $\",,$(ADMIN_PASSWORD))"
 
 deploy:
 	@echo "    SSH     $(WEB_SERVER)"
