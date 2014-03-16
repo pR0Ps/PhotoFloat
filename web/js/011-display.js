@@ -257,9 +257,9 @@ $(document).ready(function() {
 		currentPhoto = photo;
 		currentPhotoIndex = photoIndex;
 		setTitle();
-		showAlbum(previousAlbum !== currentAlbum);
 		if (photo !== null)
 			showPhoto();
+		showAlbum(previousAlbum !== currentAlbum);
 	}
 	
 	/* Event listeners */
