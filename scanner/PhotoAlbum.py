@@ -122,7 +122,7 @@ class Album(object):
         return None
 
 class Photo(object):
-    thumb_sizes = [ (75, True), (150, True), (640, False), (800, False), (1024, False) ]
+    thumb_sizes = [ (75, True), (150, True), (640, False), (1024, False), (1600, False) ]
 
     def __init__(self, path, thumb_path=None, attributes=None):
         self._path = trim_base(path)

@@ -27,7 +27,7 @@ $(document).ready(function() {
 	var previousPhoto = null;
 	var originalTitle = document.title;
 	var photoFloat = new PhotoFloat();
-	var maxSize = 800;
+	var maxSize = 1024;
 	
 	
 	/* Displays */
@@ -310,7 +310,7 @@ $(document).ready(function() {
 		$("#fullscreen-divider").show();
 		$("#fullscreen").show().click(function() {
 			$("#photo").fullScreen({callback: function(isFullscreen) {
-				maxSize = isFullscreen ? 1024 : 800;
+				maxSize = isFullscreen ? 1600 : 1024;
 				showPhoto();
 			}});
 		});
