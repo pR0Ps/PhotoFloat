@@ -306,14 +306,19 @@ class Photo(object):
 		return [image_cache(self._path, size[0], size[1]) for size in Photo.thumb_sizes]
 	@property
 	def date(self):
+		correct_date = None;
 		if not self.is_valid:
-			return datetime(1900, 1, 1)
+			correct_date = datetime(1900, 1, 1)
 		if "dateTimeOriginal" in self._attributes:
-			return self._attributes["dateTimeOriginal"]
+			correct_date = self._attributes["dateTimeOriginal"]
 		elif "dateTime" in self._attributes:
-			return self._attributes["dateTime"]
+			correct_date = self._attributes["dateTime"]
 		else:
-			return self._attributes["dateTimeFile"]
+			correct_date = self._attributes["dateTimeFile"]
+		if isinstance(correct_date, unicode):
+			correct_date = datetime.strptime(correct_date, '%Y:%m:%d %H:%M:%S')
+		return correct_date
+
 	def __cmp__(self, other):
 		date_compare = cmp(self.date, other.date)
 		if date_compare == 0:
