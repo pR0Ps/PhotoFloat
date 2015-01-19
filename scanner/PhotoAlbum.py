@@ -145,9 +145,9 @@ class Photo(object):
 		exif = {}
 		for tag, value in info.items():
 			decoded = TAGS.get(tag, tag)
-			if isinstance(value, str):
+			if isinstance(value, str) or isinstance(value, unicode):
 				value = value.strip().partition("\x00")[0]
-				if isinstance(decoded, str) and decoded.startswith("DateTime"):
+				if (isinstance(decoded, str) or isinstance(value, unicode)) and decoded.startswith("DateTime"):
 					try:
 						value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
 					except KeyboardInterrupt:
@@ -315,8 +315,6 @@ class Photo(object):
 			correct_date = self._attributes["dateTime"]
 		else:
 			correct_date = self._attributes["dateTimeFile"]
-		if isinstance(correct_date, unicode):
-			correct_date = datetime.strptime(correct_date, '%Y:%m:%d %H:%M:%S')
 		return correct_date
 
 	def __cmp__(self, other):
