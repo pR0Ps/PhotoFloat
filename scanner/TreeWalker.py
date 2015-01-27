@@ -49,7 +49,10 @@ class TreeWalker:
 			except KeyboardInterrupt:
 				raise
 			except:
-				pass
+				next_level()
+				message("unicode error", entry.decode(sys.getfilesystemencoding(), "replace"))
+				back_level()
+				continue
 			entry = os.path.join(path, entry)
 			if os.path.isdir(entry):
 				album.add_album(self.walk(entry))
