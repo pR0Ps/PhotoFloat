@@ -262,11 +262,17 @@ class Photo(object):
 		try:
 			image.save(thumb_path, "JPEG", quality=88)
 		except KeyboardInterrupt:
-			os.unlink(thumb_path)
+			try:
+				os.unlink(thumb_path)
+			except:
+				pass
 			raise
 		except:
 			message("save failure", os.path.basename(thumb_path))
-			os.unlink(thumb_path)
+			try:
+				os.unlink(thumb_path)
+			except:
+				pass
 		
 	def _thumbnails(self, image, thumb_path, original_path):
 		mirror = image
