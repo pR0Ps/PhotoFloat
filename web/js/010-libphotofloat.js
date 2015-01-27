@@ -137,12 +137,15 @@
 		return PhotoFloat.cachePath(album.parent.path + "/" + album.path);
 	};
 	PhotoFloat.photoPath = function(album, photo, size, square) {
-		var suffix;
+		var suffix, hash;
 		if (square)
 			suffix = size.toString() + "s";
 		else
 			suffix = size.toString();
-		return "cache/" + PhotoFloat.cachePath(PhotoFloat.photoHash(album, photo) + "_" + suffix + ".jpg");
+		hash = PhotoFloat.cachePath(PhotoFloat.photoHash(album, photo) + "_" + suffix + ".jpg");
+		if (hash.indexOf("root-") === 0)
+			hash = hash.substring(5);
+		return "cache/" + hash;
 	};
 	PhotoFloat.originalPhotoPath = function(album, photo) {
 		return "albums/" + album.path + "/" + photo.name;
