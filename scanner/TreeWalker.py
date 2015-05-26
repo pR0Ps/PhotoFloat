@@ -19,6 +19,10 @@ class TreeWalker:
 		message("complete", "")
 	def walk(self, path):
 		next_level()
+		if not os.access(path, os.R_OK | os.X_OK):
+			message("access denied", os.path.basename(path))
+			back_level()
+			return None
 		message("walking", os.path.basename(path))
 		cache = os.path.join(self.cache_path, json_cache(path))
 		cached = False
@@ -55,7 +59,9 @@ class TreeWalker:
 				continue
 			entry = os.path.join(path, entry)
 			if os.path.isdir(entry):
-				album.add_album(self.walk(entry))
+				next_walked_album = self.walk(entry)
+				if next_walked_album is not None:
+					album.add_album(next_walked_album)
 			elif not cached and os.path.isfile(entry):
 				next_level()
 				cache_hit = False
