@@ -267,10 +267,6 @@ $(document).ready(function() {
 	$(window).hashchange(function() {
 		$("#loading").show();
 		$("link[rel=image_src]").remove();
-		if (location.search.indexOf("?_escaped_fragment_=") === 0) {
-			location.hash = location.search.substring(20);
-			location.search = "";
-		}
 		photoFloat.parseHash(location.hash, hashParsed, die);
 	});
 	$(window).hashchange();

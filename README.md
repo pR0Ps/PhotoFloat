@@ -155,25 +155,6 @@ Note that the `internal-*` paths must match that of `app.cfg`. This makes use of
     plugins = python27
     module = floatapp:app
 
-## Optional: Server-side Rendering
-
-Some webpages may desire to optionally render pages server side when special query strings are attached, so that GoogleBot may index pages. PhotoFloat supports the [AJAX crawl specification](https://developers.google.com/webmasters/ajax-crawling/).
-
-    location / {
-            location = / {
-                include uwsgi_params;
-                uwsgi_param HTTP_X_SE_ORIGINAL_URL $scheme://$host$request_uri;
-                if ($args ~* _escaped_fragment_=) {
-                    uwsgi_pass unix:/var/run/uwsgi-apps/server-execute-phantom.socket;
-                }
-            }
-            index index.html;
-            root /var/www/htdocs/photos.jasondonenfeld.com;
-    }
-
-This makes use of the [Server Execute Phantom project](http://git.zx2c4.com/server-execute-phantom/about/).
-
-
 ## Optional: Deployment Makefiles
 
 Both the scanner and the webpage have a `make deploy` target, and the scanner has a `make scan` target, to automatically deploy assets to a remote server and run the scanner. For use, customize `deployment-config.mk` in the root of the project, and carefully read the `Makefile`s to learn what's happening.
