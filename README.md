@@ -2,7 +2,7 @@
 ### A Web 2.0 Photo Gallery Done Right via Static JSON & Dynamic Javascript
 #### by Jason A. Donenfeld (<Jason@zx2c4.com>)
 
-![Screenshot](http://data.zx2c4.com/photo-float-small.jpg)
+![Screenshot](screenshot.jpg)
 
 PhotoFloat is an open source web photo gallery aimed at sleekness and speed. It keeps with an old hat mentality, preferring to work over directory structures rather than esoteric photo database management software. Everything it generates is static, which means it's extremely fast.
 
