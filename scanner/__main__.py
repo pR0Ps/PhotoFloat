@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
-from TreeWalker import TreeWalker
-from CachePath import message
+from scanner.TreeWalker import TreeWalker
+from scanner.CachePath import message
 import sys
 import os
 

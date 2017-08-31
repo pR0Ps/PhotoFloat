@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+
 import os
 import os.path
 import sys
 from datetime import datetime
-from PhotoAlbum import Photo, Album, PhotoAlbumEncoder
-from CachePath import *
+from scanner.PhotoAlbum import Photo, Album, PhotoAlbumEncoder
+from scanner.CachePath import *
 import json
 
 class TreeWalker:

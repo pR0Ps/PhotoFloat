@@ -1,4 +1,6 @@
-from CachePath import *
+#!/usr/bin/env python
+
+from scanner.CachePath import *
 from datetime import datetime
 import json
 import os

@@ -42,6 +42,13 @@ It is, essentially, the slickest and fastest, most minimal but still well-featur
     $ git clone git://git.zx2c4.com/PhotoFloat
     $ cd PhotoFloat
 
+### Install the scanner package
+Use the included `setup.py` to install the package. You will probably want to do this in a [virtual environment](https://virtualenv.pypa.io/en/stable/).
+
+    $ virtualenv -p python2 .venv
+    $ source .venv/bin/activate
+    $ pip install .
+
 #### Change or delete the Google Analytics ID tracker:
 
 To delete:
@@ -72,10 +79,10 @@ Now that we're in the web directory, let's make a folder for cache and a folder 
     $ mkdir albums
     $ mkdir cache
 
-When you're done, fill albums with photos and directories of photos. You can also use symlinks. Run the static generator (you need Python≥2.6 and the Python Imaging Library):
+When you're done, fill albums with photos and directories of photos. You can also use symlinks. Run the static generator:
 
-    $ cd ../scanner
-    $ ./main.py ../web/albums ../web/cache
+    $ photofloat albums cache
+    $ # OR python -m ../scanner albums cache
 
 After it finishes, you will be all set. Simply have your web server serve pages out of your web directory. You may want to do the scanning step in a cronjob, if you don't use the deployment makefiles mentioned below.
 
