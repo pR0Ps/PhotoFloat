@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os.path
 from datetime import datetime
 
@@ -6,7 +8,10 @@ def message(category, text):
         sep = "  "
     else:
         sep = "--"
-    print "%s %s%s[%s]%s%s" % (datetime.now().isoformat(), max(0, message.level) * "  |", sep, category, max(1, (14 - len(category))) * " ", text)
+    print ("{} {}{}[{}]{}{}".format(datetime.now().isoformat(),
+                                    max(0, message.level) * "  |",
+                                    sep, category,
+                                    max(1, (14 - len(category))) * " ", text))
 
 message.level = -1
 def next_level():
@@ -32,7 +37,11 @@ def trim_base(path):
     return trim_base_custom(path, trim_base.base)
 
 def cache_base(path):
-    path = trim_base(path).replace('/', '-').replace(' ', '_').replace('(', '').replace('&', '').replace(',', '').replace(')', '').replace('#', '').replace('[', '').replace(']', '').replace('"', '').replace("'", '').replace('_-_', '-').lower()
+    path = trim_base(path).replace(os.sep, '-').replace(' ', '_').\
+            replace('(', '').replace('&', '').replace(',', '').\
+            replace(')', '').replace('#', '').replace('[', '').\
+            replace(']', '').replace('"', '').replace("'", '').\
+            replace('_-_', '-').lower()
     while path.find("--") != -1:
         path = path.replace("--", "-")
     while path.find("__") != -1:
@@ -42,14 +51,15 @@ def cache_base(path):
     return path
 
 def json_cache(path):
-    return cache_base(path) + ".json"
+    return "{}.json".format(cache_base(path))
 
 def image_cache(path, size, square=False):
     if square:
-        suffix = str(size) + "s"
+        suffix = "{}s".format(size)
     else:
-        suffix = str(size)
-    return cache_base(path) + "_" + suffix + ".jpg"
+        suffix = size
+    return "{}_{}.jpg".format(cache_base(path), suffix)
 
 def file_mtime(path):
+    #TODO: timezone?
     return datetime.fromtimestamp(int(os.path.getmtime(path)))

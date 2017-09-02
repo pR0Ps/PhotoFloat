@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 
-from scanner.TreeWalker import TreeWalker
-from scanner.CachePath import message
 import sys
 import os
 
+from scanner.TreeWalker import TreeWalker
+from scanner.CachePath import message
+
+
 def main():
-    reload(sys)
-    sys.setdefaultencoding("UTF-8")
 
     if len(sys.argv) < 2:
-        print """usage: %s <album> [ <cache> ]
+        print ("""usage: {} <album> [ <cache> ]
 
 <album>: a directory where you store a hierarchy of album folders
 <cache>: where photofloat will generate thumbnails and other data (default: <album>/../cache)
-""" % sys.argv[0]
+""".format(sys.argv[0]))
         return
 
     album = sys.argv[1]
@@ -24,7 +24,7 @@ def main():
         cache = sys.argv[2]
 
     try:
-        os.umask(022)
+        os.umask(0x022)
         TreeWalker(album, cache)
     except KeyboardInterrupt:
         message("keyboard", "CTRL+C pressed, quitting.")

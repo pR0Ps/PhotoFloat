@@ -8,10 +8,13 @@ setup(name="photofloat",
       url="https://github.com/pR0Ps/PhotoFloat",
       license="GPLv2",
       classifiers=[
-          "Programming Language :: Python :: 2",
-          "Programming Language :: Python :: 2.7",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.3",
+          "Programming Language :: Python :: 3.4",
+          "Programming Language :: Python :: 3.5",
+          "Programming Language :: Python :: 3.6",
       ],
       packages=["scanner"],
-      install_requires=["pillow>=4.2.1,<4.3.0"],
+      install_requires=["pillow>=4.2.1,<4.3.0", "ExifRead>=2.1.2,<3.0.0"],
       entry_points={'console_scripts': ["photofloat=scanner.__main__:main"]}
 )
