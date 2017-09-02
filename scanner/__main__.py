@@ -16,11 +16,16 @@ def main():
 <cache>: where photofloat will generate thumbnails and other data (default: <album>/../cache)
 """ % sys.argv[0]
         return
+
+    album = sys.argv[1]
     if len(sys.argv) < 3:
-            sys.argv.append('%s/../cache' % sys.argv[1])
+        cache = os.path.join(album, "..", "cache")
+    else:
+        cache = sys.argv[2]
+
     try:
         os.umask(022)
-        TreeWalker(sys.argv[1], sys.argv[2])
+        TreeWalker(album, cache)
     except KeyboardInterrupt:
         message("keyboard", "CTRL+C pressed, quitting.")
         sys.exit(-97)
