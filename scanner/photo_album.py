@@ -11,7 +11,8 @@ from exifread.tags import EXIF_TAGS
 from PIL import Image
 from PIL.ExifTags import TAGS
 
-from scanner.cache_path import *
+from scanner.cache_path import (untrim_base, trim_base, trim_base_custom,
+                                json_cache, image_cache, file_mtime, message)
 
 EXIF_DICT = {tag: vals[0] for tag, *vals in EXIF_TAGS.values() if vals}
 # Format: ((attr_name, exif_tag, [alt_exif_tag, ...]), ...)
