@@ -102,7 +102,7 @@ $(document).ready(function() {
 				link.append(image);
 				photos.push(link);
 				(function(theLink, theImage, theAlbum) {
-					theImage.error(function() {
+					theImage.on('error', function() {
 						photos.splice(photos.indexOf(theLink), 1);
 						theLink.remove();
 						theAlbum.photos.splice(theAlbum.photos.indexOf(theImage.get(0).photo), 1);
@@ -182,7 +182,7 @@ $(document).ready(function() {
 			.attr("src", photoSrc)
 			.attr("alt", currentPhoto.name)
 			.attr("title", currentPhoto.date)
-			.load(scaleImage);
+			.on('load', scaleImage);
 		$("head").append("<link rel=\"image_src\" href=\"" + photoSrc + "\" />");
 		
 		previousPhoto = currentAlbum.photos[
@@ -264,12 +264,12 @@ $(document).ready(function() {
 	
 	/* Event listeners */
 	
-	$(window).hashchange(function() {
+	$(window).on('hashchange', function() {
 		$("#loading").show();
 		$("link[rel=image_src]").remove();
 		photoFloat.parseHash(location.hash, hashParsed, die);
 	});
-	$(window).hashchange();
+	$(window).trigger('hashchange');
 	$(document).keydown(function(e){
 		if (currentPhoto === null)
 			return true;
@@ -327,7 +327,7 @@ $(document).ready(function() {
 			password.val("");
 			if (success) {
 				password.css("background-color", "rgb(200, 200, 200)");
-				$(window).hashchange();
+				$(window).trigger('hashchange');
 			} else
 				password.css("background-color", "rgb(255, 64, 64)");
 		});
