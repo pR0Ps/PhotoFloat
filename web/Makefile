@@ -7,8 +7,8 @@ CSS_MIN = $(CSS_DIR)/styles.min.css
 JS_MIN_FILES := $(sort $(patsubst %.js, %.min.js, $(filter-out %.min.js, $(wildcard $(JS_DIR)/*.js))))
 CSS_MIN_FILES := $(sort $(patsubst %.css, %.min.css, $(filter-out %.min.css, $(wildcard $(CSS_DIR)/*.css))))
 
-JS_COMPILER := java -jar bin/closure-compiler.jar --warning_level QUIET
-CSS_COMPILER := java -jar bin/yui-compressor.jar --type css
+JS_COMPILER := java -jar bin/closure-compiler-v20170806.jar --warning_level QUIET
+CSS_COMPILER := java -jar bin/yuicompressor-2.4.8.jar --type css
 
 DEBUG ?= 0
 
