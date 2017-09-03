@@ -3,8 +3,8 @@
 import sys
 import os
 
-from scanner.TreeWalker import TreeWalker
-from scanner.CachePath import message
+from scanner.tree_walker import TreeWalker
+from scanner.cache_path import message
 
 
 def main():

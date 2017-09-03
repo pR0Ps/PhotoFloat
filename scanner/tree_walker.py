@@ -5,8 +5,8 @@ import json
 import os
 import sys
 
-from scanner.PhotoAlbum import Photo, Album, PhotoAlbumEncoder
-from scanner.CachePath import *
+from scanner.photo_album import Photo, Album, PhotoAlbumEncoder
+from scanner.cache_path import *
 
 
 class TreeWalker:
