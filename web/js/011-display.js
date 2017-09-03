@@ -282,18 +282,6 @@ $(document).ready(function() {
 		}
 		return true;
 	});
-	$(document).mousewheel(function(event, delta) {
-		if (currentPhoto === null)
-			return true;
-		if (delta < 0) {
-			window.location.href = $("#next").attr("href");
-			return false;
-		} else if (delta > 0) {
-			window.location.href = $("#back").attr("href");
-			return false;
-		}
-		return true;
-	});
 	$("#photo-box").mouseenter(function() {
 		$("#photo-links").stop().fadeTo("slow", 0.50).css("display", "inline");
 	});

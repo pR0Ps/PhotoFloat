@@ -22,7 +22,6 @@ The JavaScript application consists of a single `index.html` file with a single 
 * Photo pre-loading
 * Recursive async randomized tree walking album thumbnail algorithm
 * Smooth up and down scaling
-* Mouse-wheel support
 * Metadata display
 * Consistant hash url format
 * Linkable states via ajax urls
