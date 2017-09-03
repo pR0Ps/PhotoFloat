@@ -45,12 +45,16 @@
 		var nextAlbum, self;
 		self = this;
 		nextAlbum = function(album) {
-			var index = Math.floor(Math.random() * (album.photos.length + album.albums.length));
-			if (index >= album.photos.length) {
-				index -= album.photos.length;
-				self.album(album.albums[index], nextAlbum, error);
-			} else
-				callback(album, album.photos[index]);
+			// Photos in albums are ordered oldest to newest
+			// Albums are ordered newest to oldest
+			if (album.photos.length > 0){
+				// Take the oldest photo in the album (first photo shown)
+				callback(album, album.photos[0]);
+			}
+			else{
+				// Delegate picking thumb to newest subalbum (first one shown)
+				self.album(album.albums[album.albums.length - 1], nextAlbum, error);
+			}
 		};
 		if (typeof subalbum.photos !== "undefined" && subalbum.photos !== null)
 			nextAlbum(subalbum);
