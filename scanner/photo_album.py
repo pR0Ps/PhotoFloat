@@ -184,7 +184,7 @@ class Photo(object):
             # Rotation and conversion to jpeg
             img.auto_orient()
             img.format = 'jpeg'
-            img.compression_quality = 99
+            img.compression_quality = 85
             self._thumbnails(img, thumb_dir, path)
         gc.collect()
 

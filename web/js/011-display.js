@@ -28,6 +28,7 @@ $(document).ready(function() {
 	var originalTitle = document.title;
 	var photoFloat = new PhotoFloat();
 	var maxSize = 1024;
+	var placeholderImage = "../img/image-placeholder.png";
 	
 	
 	/* Displays */
@@ -97,16 +98,26 @@ $(document).ready(function() {
 			photos = [];
 			for (i = 0; i < currentAlbum.photos.length; ++i) {
 				link = $("<a href=\"#!/" + photoFloat.photoHash(currentAlbum, currentAlbum.photos[i]) + "\"></a>");
-				image = $("<img title=\"" + photoFloat.trimExtension(currentAlbum.photos[i].name) + "\" alt=\"" + photoFloat.trimExtension(currentAlbum.photos[i].name) + "\" src=\"" + photoFloat.photoPath(currentAlbum, currentAlbum.photos[i], 150, true) + "\" height=\"150\" width=\"150\" />");
+
+				// Create the image with the placeholder and swap to the real one once it loads
+				image = $("<img title=\"" + photoFloat.trimExtension(currentAlbum.photos[i].name) + "\"" +
+									"alt=\"" + photoFloat.trimExtension(currentAlbum.photos[i].name) + "\"" +
+									"src=\"" + placeholderImage + "\"" +
+									"\" height=\"150\" width=\"150\" />");
 				image.get(0).photo = currentAlbum.photos[i];
 				link.append(image);
 				photos.push(link);
 				(function(theLink, theImage, theAlbum) {
-					theImage.on('error', function() {
+					var img = new Image();
+					img.onload = function(){
+						theImage.attr('src', img.src);
+					};
+					img.onerror = function() {
 						photos.splice(photos.indexOf(theLink), 1);
 						theLink.remove();
 						theAlbum.photos.splice(theAlbum.photos.indexOf(theImage.get(0).photo), 1);
-					});
+					};
+					img.src = photoFloat.photoPath(theAlbum, theAlbum.photos[i], 150, true)
 				})(link, image, currentAlbum);
 			}
 			thumbsElement = $("#thumbs");
@@ -121,7 +132,17 @@ $(document).ready(function() {
 				subalbums.push(link);
 				(function(theContainer, theAlbum, theImage, theLink) {
 					photoFloat.albumPhoto(theAlbum, function(album, photo) {
-						theImage.css("background-image", "url(" + photoFloat.photoPath(album, photo, 150, true) + ")");
+						// Only set the background-image once it has finished loading
+						var img = new Image();
+						img.onload = function(){
+							theImage.css("background-image", "url(" + img.src + ")");
+						};
+						img.onerror = function(){
+							// Remove failed image from album data
+							album.photos.splice(album.photos.indexOf(photo), 1);
+							//TODO: Try next image in album?
+						}
+						img.src = photoFloat.photoPath(album, photo, 150, true);
 					}, function error() {
 						theContainer.albums.splice(currentAlbum.albums.indexOf(theAlbum), 1);
 						theLink.remove();
