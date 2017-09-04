@@ -29,7 +29,7 @@ EXIF_TAGMAP = (
     ("exposureCompensation", "ExposureBiasValue", "ExposureCompensation"),
     ("dateTimeOriginal", "DateTimeOriginal", "DateTimeDigitized"),
     ("dateTime", "DateTime"),
-    ("mimeType", "MIMEType"), ("fileType", "FileType")
+    ("mimeType", "MIMEType")
 )
 TAGS_TO_EXTRACT = ("EXIF:*", "File:MIMEType", "File:FileType")
 
@@ -165,6 +165,7 @@ class Photo(object):
 
     def __init__(self, path, thumb_dir=None, attributes=None):
         self._path = trim_base(path)
+        self._filetype = None
         self.is_valid = True
         try:
             mtime = file_mtime(path)
@@ -178,7 +179,7 @@ class Photo(object):
 
         # Process exifdata into self._attributes
         self._metadata(path)
-        if ("fileType" not in self._attributes or
+        if (not self._filetype or
                 not self._attributes.get("mimeType", "").lower().startswith("image/")):
             self.is_valid = False
             return
@@ -204,7 +205,7 @@ class Photo(object):
                 # to differentiate between file types. Ex: CR2 files are
                 # incorrectly identified as TIFF files (and error out during
                 # processing) unless the format is specified.
-                with Image(file=f, format=self._attributes["fileType"]) as img:
+                with Image(file=f, format=self._filetype) as img:
                     # Rotation and conversion to jpeg
                     img.auto_orient()
                     img.format = 'jpeg'
@@ -221,12 +222,17 @@ class Photo(object):
         exif = {}
         for tag, value in info.items():
             *tag_type, tag_name = tag.split(":", 1)
+            tag_type = tag_type[0] if tag_type else None
 
-            if isinstance(value, str) and tag_name.startswith("DateTime"):
+            if tag_type == "EXIF" and tag_name.startswith("DateTime"):
                 try:
                     value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
                 except (TypeError, ValueError):
                     continue
+            elif (tag_type, tag_name) == ("File", "FileType"):
+                self._filetype = value
+                continue
+
             exif[tag_name] = value
 
         # Pull out exif data into self._attributes
