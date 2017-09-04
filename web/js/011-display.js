@@ -28,7 +28,7 @@ $(document).ready(function() {
 	var originalTitle = document.title;
 	var photoFloat = new PhotoFloat();
 	var maxSize = 1024;
-	var placeholderImage = "../img/image-placeholder.png";
+	var placeholderImage = "../img/loading.gif";
 	
 	
 	/* Displays */
@@ -197,7 +197,7 @@ $(document).ready(function() {
 			.attr("width", width).attr("height", height).attr("ratio", currentPhoto.size[0] / currentPhoto.size[1])
 			.attr("alt", currentPhoto.name)
 			.attr("title", currentPhoto.date)
-			.attr("src", null)
+			.attr("src", placeholderImage)
 		$("#photo")
 			.attr("src", photoSrc)
 			.on('load', scaleImage);
