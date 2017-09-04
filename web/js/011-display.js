@@ -235,6 +235,7 @@ $(document).ready(function() {
 		if (typeof currentPhoto.lightSource !== "undefined") text += "<tr><td>Light Source</td><td>" + currentPhoto.lightSource + "</td></tr>";
 		if (typeof currentPhoto.flash !== "undefined") text += "<tr><td>Flash</td><td>" + currentPhoto.flash + "</td></tr>";
 		if (typeof currentPhoto.orientation !== "undefined") text += "<tr><td>Orientation</td><td>" + currentPhoto.orientation + "</td></tr>";
+		if (typeof currentPhoto.mimeType !== "undefined") text += "<tr><td>MIME Type</td><td>" + currentPhoto.mimeType + "</td></tr>";
 		text += "</table>";
 		$("#metadata").html(text);
 		
