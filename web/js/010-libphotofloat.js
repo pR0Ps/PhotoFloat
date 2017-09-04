@@ -26,9 +26,9 @@
 			url: "cache/" + cacheKey + ".json",
 			success: function(album) {
 				var i;
-				for (i = 0; i < album.albums.length; ++i)
+				for (var i = 0; i < album.albums.length; ++i)
 					album.albums[i].parent = album;
-				for (i = 0; i < album.photos.length; ++i)
+				for (var i = 0; i < album.photos.length; ++i)
 					album.photos[i].parent = album;
 				self.albumCache[cacheKey] = album;
 				callback(album);
@@ -78,7 +78,7 @@
 		this.album(album, function(theAlbum) {
 			var i = -1;
 			if (photo !== null) {
-				for (i = 0; i < theAlbum.photos.length; ++i) {
+				for (var i = 0; i < theAlbum.photos.length; ++i) {
 					if (PhotoFloat.cachePath(theAlbum.photos[i].name) === photo) {
 						photo = theAlbum.photos[i];
 						break;

@@ -43,7 +43,7 @@ $(document).ready(function() {
 		}
 		if (currentPhoto !== null)
 			documentTitle += photoFloat.trimExtension(currentPhoto.name);
-		for (i = 0; i < components.length; ++i) {
+		for (var i = 0; i < components.length; ++i) {
 			if (i || currentPhoto !== null)
 				documentTitle += " \u00ab ";
 			if (i)
@@ -96,7 +96,7 @@ $(document).ready(function() {
 		
 		if (populate) {
 			photos = [];
-			for (i = 0; i < currentAlbum.photos.length; ++i) {
+			for (var i = 0; i < currentAlbum.photos.length; ++i) {
 				link = $("<a href=\"#!/" + photoFloat.photoHash(currentAlbum, currentAlbum.photos[i]) + "\"></a>");
 
 				// Create the image with the placeholder and swap to the real one once it loads
@@ -125,7 +125,7 @@ $(document).ready(function() {
 			thumbsElement.append.apply(thumbsElement, photos);
 			
 			subalbums = [];
-			for (i = currentAlbum.albums.length - 1; i >= 0; --i) {
+			for (var i = currentAlbum.albums.length - 1; i >= 0; --i) {
 				link = $("<a href=\"#!/" + photoFloat.albumHash(currentAlbum.albums[i]) + "\"></a>");
 				image = $("<div title=\"" + currentAlbum.albums[i].date + "\" class=\"album-button\">" + currentAlbum.albums[i].path + "</div>");
 				link.append(image);
