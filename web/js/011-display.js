@@ -174,9 +174,11 @@ $(document).ready(function() {
 		photoSrc = photoFloat.photoPath(currentAlbum, currentPhoto, maxSize, false);
 		$("#photo")
 			.attr("width", width).attr("height", height).attr("ratio", currentPhoto.size[0] / currentPhoto.size[1])
-			.attr("src", photoSrc)
 			.attr("alt", currentPhoto.name)
 			.attr("title", currentPhoto.date)
+			.attr("src", null)
+		$("#photo")
+			.attr("src", photoSrc)
 			.on('load', scaleImage);
 		$("head").append("<link rel=\"image_src\" href=\"" + photoSrc + "\" />");
 		
