@@ -3,11 +3,12 @@
 import contextlib
 from datetime import datetime
 import functools
-import gc
+import hashlib
 import json
 import os
 
 from wand.image import Image
+from wand.exceptions import WandException
 
 from scanner.utils.exiftool import ExifTool
 from scanner.cache_path import (untrim_base, trim_base, trim_base_custom,
@@ -28,8 +29,9 @@ EXIF_TAGMAP = (
     ("exposureCompensation", "ExposureBiasValue", "ExposureCompensation"),
     ("dateTimeOriginal", "DateTimeOriginal", "DateTimeDigitized"),
     ("dateTime", "DateTime"),
-    ("mimeType", "MIMEType")
+    ("mimeType", "MIMEType"), ("fileType", "FileType")
 )
+TAGS_TO_EXTRACT = ("EXIF:*", "File:MIMEType", "File:FileType")
 
 # Format: ((max_size, square?), ..)
 # Note that these are generated in sequence by continually modifying the same
@@ -176,23 +178,45 @@ class Photo(object):
 
         # Process exifdata into self._attributes
         self._metadata(path)
-        if not self._attributes.get("mimeType", "").lower().startswith("image/"):
+        if ("fileType" not in self._attributes or
+                not self._attributes.get("mimeType", "").lower().startswith("image/")):
             self.is_valid = False
             return
 
-        with Image(filename=path) as img:
-            # Rotation and conversion to jpeg
-            img.auto_orient()
-            img.format = 'jpeg'
-            img.compression_quality = 85
-            self._thumbnails(img, thumb_dir, path)
-        gc.collect()
+        # Attempt to conserve as much memory as possible when dealing with
+        # large files - read data for the hash and image directly from the
+        # file. The Image object will store it memory anyway, there's no reason
+        # to do it twice.
+        try:
+            with open(path, 'rb') as f:
+                # Get hash of file
+                file_hash = hashlib.sha1()
+                while True:
+                    buff = f.read(65536)  # 64K chunks
+                    if not buff:
+                        break
+                    file_hash.update(buff)
+                self._attributes["hash"] = file_hash.hexdigest()
+
+                f.seek(0)
+
+                # Passing the file type as the format is required in some cases
+                # to differentiate between file types. Ex: CR2 files are
+                # incorrectly identified as TIFF files (and error out during
+                # processing) unless the format is specified.
+                with Image(file=f, format=self._attributes["fileType"]) as img:
+                    # Rotation and conversion to jpeg
+                    img.auto_orient()
+                    img.format = 'jpeg'
+                    img.compression_quality = 85
+                    self._thumbnails(img, thumb_dir, path)
+        except (OSError, WandException):
+            self.is_valid = False
 
     def _metadata(self, img_path):
         """Get metadata about the image via exiftool"""
 
-        info = ExifTool().process_files(img_path,
-                                        tags=["EXIF:*", "File:MIMEType"])[0]
+        info = ExifTool().process_files(img_path, tags=TAGS_TO_EXTRACT)[0]
 
         exif = {}
         for tag, value in info.items():
