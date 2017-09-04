@@ -41,12 +41,41 @@ It is, essentially, the slickest and fastest, most minimal but still well-featur
     $ git clone git://git.zx2c4.com/PhotoFloat
     $ cd PhotoFloat
 
-### Install the scanner package
+#### Install the scanner package
 Use the included `setup.py` to install the package. You will probably want to do this in a [virtual environment](https://virtualenv.pypa.io/en/stable/).
 
     $ virtualenv -p python2 .venv
     $ source .venv/bin/activate
     $ pip install .
+
+#### Install `exiftool`
+`exiftool` is a tool that extracts EXIF data from a TON of image types. The scanner uses the command
+line `exiftool` executable to process file metadata. In order for the scanner to work, the
+`exiftool` executable needs to be available on the `$PATH`.
+
+`exiftool` is widely packaged so installing it should be pretty simple:
+
+    $ # Debian and derivitives:
+    $ apt-get install libimage-exiftool-perl
+
+    $ # OSX via brew:
+    $ brew install exiftool
+
+    $ # Arch Linux:
+    $ pacman -S perl-image-exiftool
+
+#### Install ImageMagick libraries
+The scanner uses a Python library called `wand` to do all the processing of images. This library
+requires the MagickWand v6 library to be installed on the system. See the
+[wand install guide](http://docs.wand-py.org/en/latest/guide/install.html) for platform-specific
+instructions details.
+
+I had some issues getting Python to find the library on OSX 10.11.x. What finally solved them was
+the following commands from [this comment](https://github.com/dahlia/wand/issues/141#issuecomment-274909365).
+
+    $ brew install freetype imagemagick@6
+    $ export MAGICK_HOME=/usr/local/opt/imagemagick@6
+
 
 #### Change or delete the Google Analytics ID tracker:
 

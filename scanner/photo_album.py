@@ -7,14 +7,12 @@ import gc
 import json
 import os
 
-from exifread.tags import EXIF_TAGS
-from PIL import Image
-from PIL.ExifTags import TAGS
+from wand.image import Image
 
+from scanner.utils.exiftool import ExifTool
 from scanner.cache_path import (untrim_base, trim_base, trim_base_custom,
                                 json_cache, image_cache, file_mtime, message)
 
-EXIF_DICT = {tag: vals[0] for tag, *vals in EXIF_TAGS.values() if vals}
 # Format: ((attr_name, exif_tag, [alt_exif_tag, ...]), ...)
 EXIF_TAGMAP = (
     ("make", "Make"), ("model", "Model"), ("focalLength", "FocalLength"),
@@ -28,19 +26,15 @@ EXIF_TAGMAP = (
     ("sceneCaptureType", "SceneCaptureType"),
     ("subjectDistanceRange", "SubjectDistanceRange"),
     ("exposureCompensation", "ExposureBiasValue", "ExposureCompensation"),
-    ("dateTimeOriginal", "DateTimeOriginal"), ("dateTime", "DateTime")
+    ("dateTimeOriginal", "DateTimeOriginal", "DateTimeDigitized"),
+    ("dateTime", "DateTime"),
+    ("mimeType", "MIMEType")
 )
 
-
-def exif_lookup(d, tag):
-    """
-    When given a dict that contains exif data and a tag, will pull out
-    the proper data, converting it to a human-readable format if possible"""
-    opts = EXIF_DICT.get(tag, None)
-    if not opts:
-        return d[tag]
-    return opts[d[tag]]
-
+# Format: ((max_size, square?), ..)
+# Note that these are generated in sequence by continually modifying the same
+# buffer. Ex: 1600 -> 1024 -> 150s will work. The reverse won't.
+THUMB_SIZES = ((1600, False), (1024, False), (150, True))
 
 # TODO: Remove for performance
 @functools.total_ordering
@@ -75,7 +69,7 @@ class Album(object):
     def date(self):
         self._sort()
         if len(self._photos) == 0 and len(self._albums) == 0:
-            return datetime(1900, 1, 1)
+            return datetime.min
         elif len(self._photos) == 0:
             return self._albums[-1].date
         elif len(self._albums) == 0:
@@ -166,10 +160,8 @@ class Album(object):
 # TODO: Remove for performance
 @functools.total_ordering
 class Photo(object):
-    thumb_sizes = [ (75, True), (150, True), (640, False),
-                    (1024, False), (1600, False) ]
 
-    def __init__(self, path, thumb_path=None, attributes=None):
+    def __init__(self, path, thumb_dir=None, attributes=None):
         self._path = trim_base(path)
         self.is_valid = True
         try:
@@ -182,125 +174,83 @@ class Photo(object):
             return
         self._attributes = {"dateTimeFile": mtime}
 
-        try:
-            image = Image.open(path)
-        except OSError:
+        # Process exifdata into self._attributes
+        self._metadata(path)
+        if not self._attributes.get("mimeType", "").lower().startswith("image/"):
             self.is_valid = False
             return
-        self._metadata(image)
-        self._thumbnails(image, thumb_path, path)
 
-    def _metadata(self, image):
-        self._attributes["size"] = image.size
-        self._orientation = 1
-        try:
-            info = image._getexif()
-        except OSError:
-            return
-        if not info:
-            return
+        with Image(filename=path) as img:
+            # Rotation and conversion to jpeg
+            img.auto_orient()
+            img.format = 'jpeg'
+            img.compression_quality = 99
+            self._thumbnails(img, thumb_dir, path)
+        gc.collect()
+
+    def _metadata(self, img_path):
+        """Get metadata about the image via exiftool"""
+
+        info = ExifTool().process_files(img_path,
+                                        tags=["EXIF:*", "File:MIMEType"])[0]
 
         exif = {}
         for tag, value in info.items():
-            decoded = TAGS.get(tag, tag)
-            # TODO: tuple/list AND str??
-            if isinstance(value, (tuple, list)) and isinstance(decoded, str) and decoded.startswith("DateTime") and len(value) >= 1:
-                value = value[0]
-            if isinstance(value, str):
-                value = value.strip().partition("\x00")[0]
-                if isinstance(decoded, str) and decoded.startswith("DateTime"):
-                    try:
-                        value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
-                    except (TypeError, ValueError):
-                        continue
-            exif[decoded] = value
+            *tag_type, tag_name = tag.split(":", 1)
+
+            if isinstance(value, str) and tag_name.startswith("DateTime"):
+                try:
+                    value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
+                except (TypeError, ValueError):
+                    continue
+            exif[tag_name] = value
 
         # Pull out exif data into self._attributes
         for attr, *tags in EXIF_TAGMAP:
             for tag in tags:
                 with contextlib.suppress(LookupError):
-                    self._attributes[attr] = exif_lookup(exif, tag)
+                    self._attributes[attr] = exif[tag]
                     break
 
+
+    def _thumbnails(self, img, thumb_dir, original_path):
+        """Generate thumbnails"""
+
+        self._attributes["size"] = img.size
+
         # Taken sideways, invert the dimensions
-        if "rotated 90" in self._attributes.get("orientation", ""):
+        if "rotated 90" in self._attributes.get("orientation", "").lower():
             self._attributes["size"] = self._attributes["size"][::-1]
 
+        for size, square in THUMB_SIZES:
 
-    def _thumbnail(self, image, thumb_path, original_path, size, square=False):
-        thumb_path = os.path.join(thumb_path,
-                                  image_cache(self._path, size, square))
-        info_str = "{} -> {}px".format(os.path.basename(original_path), size)
-        if square:
-            info_str += ", square"
-        message("thumbing", info_str)
+            thumb_path = os.path.join(thumb_dir,
+                                      image_cache(self._path, size, square))
+            info_str = "{} -> {}px".format(os.path.basename(original_path), size)
+            if square:
+                info_str += ", square"
+            message("thumbing", info_str)
 
-        if (os.path.exists(thumb_path) and
-            file_mtime(thumb_path) >= self._attributes["dateTimeFile"]):
-            return
+            if (os.path.exists(thumb_path) and
+                file_mtime(thumb_path) >= self._attributes["dateTimeFile"]):
+                continue
 
-        gc.collect()
-        try:
-            image = image.copy()
-        except Exception:
-            # TODO: Retry still needed?
-            # try:
-            #     image = image.copy() # we try again to work around PIL bug
-            # except OSError as e:
-            message("corrupt image", os.path.basename(original_path))
-            return
-        if square:
-            if image.size[0] > image.size[1]:
-                left = (image.size[0] - image.size[1]) / 2
-                top = 0
-                right = image.size[0] - ((image.size[0] - image.size[1]) / 2)
-                bottom = image.size[1]
-            else:
-                left = 0
-                top = (image.size[1] - image.size[0]) / 2
-                right = image.size[0]
-                bottom = image.size[1] - ((image.size[1] - image.size[0]) / 2)
-            image = image.crop((left, top, right, bottom))
-        image.thumbnail((size, size), Image.ANTIALIAS)
-        try:
-            image.save(thumb_path, "JPEG", quality=88)
-        except IOError as e:
-            message("save failure", os.path.basename(thumb_path))
-            with contextlib.suppress(OSError):
-                os.remove(thumb_path)
-        except KeyboardInterrupt:
-            with contextlib.suppress(OSError):
-                os.remove(thumb_path)
-            raise
-        gc.collect()
+            if square:
+                crop = min(*img.size)
+                img.crop(width=crop, height=crop, gravity='center')
 
-    def _thumbnails(self, image, thumb_path, original_path):
-        mirror = image
-        if self._orientation == 2:
-            # Vertical Mirror
-            mirror = image.transpose(Image.FLIP_LEFT_RIGHT)
-        elif self._orientation == 3:
-            # Rotation 180
-            mirror = image.transpose(Image.ROTATE_180)
-        elif self._orientation == 4:
-            # Horizontal Mirror
-            mirror = image.transpose(Image.FLIP_TOP_BOTTOM)
-        elif self._orientation == 5:
-            # Horizontal Mirror + Rotation 270
-            mirror = image.transpose(Image.FLIP_TOP_BOTTOM)\
-                          .transpose(Image.ROTATE_270)
-        elif self._orientation == 6:
-            # Rotation 270
-            mirror = image.transpose(Image.ROTATE_270)
-        elif self._orientation == 7:
-            # Vertical Mirror + Rotation 270
-            mirror = image.transpose(Image.FLIP_LEFT_RIGHT)\
-                          .transpose(Image.ROTATE_270)
-        elif self._orientation == 8:
-            # Rotation 90
-            mirror = image.transpose(Image.ROTATE_90)
-        for size in Photo.thumb_sizes:
-            self._thumbnail(mirror, thumb_path, original_path, *size)
+            img.transform(resize="{0}x{0}>".format(size))
+
+            try:
+                img.save(filename=thumb_path)
+            except IOError as e:
+                message("save failure", os.path.basename(thumb_path))
+                with contextlib.suppress(OSError):
+                    os.remove(thumb_path)
+            except KeyboardInterrupt:
+                with contextlib.suppress(OSError):
+                    os.remove(thumb_path)
+                raise
 
     @property
     def name(self):
@@ -315,12 +265,12 @@ class Photo(object):
 
     @property
     def image_caches(self):
-        return [image_cache(self._path, *size) for size in Photo.thumb_sizes]
+        return [image_cache(self._path, size, square) for size, square in THUMB_SIZES]
 
     @property
     def date(self):
         if not self.is_valid:
-            return datetime(1900, 1, 1)
+            return datetime.min
         for x in ("dateTimeOriginal", "dateTime", "dateTimeFile"):
             with contextlib.suppress(KeyError):
                 return self._attributes[x]

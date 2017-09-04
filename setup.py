@@ -15,6 +15,6 @@ setup(name="photofloat",
           "Programming Language :: Python :: 3.6",
       ],
       packages=["scanner"],
-      install_requires=["pillow>=4.2.1,<4.3.0", "ExifRead>=2.1.2,<3.0.0"],
+      install_requires=["Wand>=0.4.4<1.0.0"],
       entry_points={'console_scripts': ["photofloat=scanner.__main__:main"]}
 )
