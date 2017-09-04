@@ -2,7 +2,7 @@ body {
 	margin: 0;
 	padding: 0;
 	background-color: #222222;
-	font-family: "LM Roman", "Georgia", "Palatino Linotype", "Palatino", "Times New Roman", "Times", serif;
+	font-family: "Roboto", "Helvetica", "Arial", sans-serif;
 	color: #FFFFFF;
 }
 a {
@@ -51,7 +51,6 @@ a:hover {
 	width: 150px;
 	height: 60px;
 	text-align: center;
-	font-style: italic;
 	font-size: 12px;
 	background-repeat: no-repeat;
 	background-position: top;
@@ -168,7 +167,6 @@ a:hover {
 	clear: both;
 	text-align: center;
 	font-size: 0.85em;
-	font-style: italic;
 	font-weight: bold;
 	text-shadow: rgba(0,0,0,0.5) -1px 0, rgba(0,0,0,0.3) 0 -1px, rgba(255,255,255,0.5) 0 1px, rgba(0,0,0,0.3) -1px -2px;
 	color: #FFAD27;
@@ -192,7 +190,6 @@ a:hover {
 #error-text {
 	font-size: 4em;
 	font-weight: bold;
-	font-style: italic;
 }
 #auth-text input {
 	color: rgb(0, 0, 0);
@@ -201,5 +198,4 @@ a:hover {
 	font-family: inherit;
 	font-size: 2em;
 	font-weight: bold;
-	font-style: italic;
 }
