@@ -83,9 +83,10 @@ a:hover {
 #photo-view {
 	position: absolute;
 	bottom: 150px;
-	top: 2.5em;
+	top: 1.75em;
 	overflow: hidden;
 	margin-bottom: 0.5em;
+  background-color: #111111;
 	left: 0;
 	right: 0;
 	text-align: center;

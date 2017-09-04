@@ -1,6 +1,5 @@
 @media handheld, only screen and (max-height: 640px) {
 	#photo-view {
-		top: 0;
 		bottom: 0;
 		margin: 0;
 	}
@@ -9,6 +8,5 @@
 	}
 	#title {
 		font-size: 1em;
-		z-index: 1;
 	}
 }
