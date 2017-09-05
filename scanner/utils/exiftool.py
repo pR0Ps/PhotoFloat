@@ -40,19 +40,33 @@ EXECUTABLE = "exiftool"
 SENTINEL = "{ready}"
 
 
-class ExifTool(object):
+class Singleton(type):
+    """Metaclass to use the singleton [anti-]pattern"""
+    instance = None
+
+    def __call__(cls, *args, **kwargs):
+        if cls.instance is None:
+            cls.instance = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls.instance
+
+
+class ExifTool(object, metaclass=Singleton):
     """Run the `exiftool` command-line tool and communicate to it.
 
-    The ``exiftool`` executable must be in your ``PATH`` for this to work.
+    The ``exiftool`` executable must be in your ``PATH`` for this to
+    work.
+
+    This class is implemented as a singleton to enable sharing of the
+    single open ``exiftool`` instance.
 
     Most methods of this class are only available after calling
-    :py:meth:`start()`, which will actually launch the subprocess.  To
+    :py:meth:`start()`, which will actually launch the subprocess. To
     avoid leaving the subprocess running, make sure to call
     :py:meth:`terminate()` method when finished using the instance.
     This method will also be implicitly called when the instance is
     garbage collected, but there are circumstance when this won't ever
     happen, so you should not rely on the implicit process
-    termination.  Subprocesses won't be automatically terminated if
+    termination. Subprocesses won't be automatically terminated if
     the parent process exits, so a leaked subprocess will stay around
     until manually killed.
 
@@ -62,9 +76,25 @@ class ExifTool(object):
         with ExifTool() as et:
             ...
 
+    Note that if the subprocess has already been started, calling
+    :py:meth:`start()` will just increment a counter. Calling
+    :py:meth:`terminate()` will decrement the counter until it reaches
+    0, at which point the subprocess will exit.
+
+    This means that something like this will do all the operations in
+    a single process using batch mode. Only when the outermost context
+    manager exits will the process be terminated.
+
+        with ExifTool():
+            ...
+            with ExifTool() as et:
+                et.process_files(...)
+            ...
+            ExifTool().process_files(...)
+
     .. warning:: Note that there is no error handling.  Nonsensical
        options will be silently ignored by exiftool, so there's not
-       much that can be done in that regard.  You should avoid passing
+       much that can be done in that regard. You should avoid passing
        non-existent files to any of the methods, since this will lead
        to undefied behaviour.
 
@@ -76,35 +106,47 @@ class ExifTool(object):
 
     def __init__(self):
         self._process = None
+        self._run_count = 0
 
     @property
     def running(self):
-        return self._process is not None
+        return bool(self._process)
 
-    def run(self):
+    def start(self):
         """Start an ``exiftool`` process in batch mode for this instance.
 
-        The process is started with the ``-G``, ``-n``, and ``-j`` as common
-        arguments, which are automatically included in every command you run
-        with :py:meth:`raw_execute()`.
+        The process is started with the ``-G`` and ``-j`` as common arguments.
+        These args will automatically be included in every command you run
+        with :py:meth:`raw_execute()` or :py:meth:`process_files()`.
         """
         if self.running:
+            self._run_cnt += 1
             return
-        self._process = subprocess.Popen(
-            [EXECUTABLE, "-stay_open", "True",  "-@", "-", "-common_args",
-             "-G", "-j"],
-            universal_newlines=True,
-            bufsize=1,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL)
 
-    def terminate(self):
+        try:
+            self._process = subprocess.Popen(
+                [EXECUTABLE, "-stay_open", "True",  "-@", "-", "-common_args",
+                 "-G", "-j"],
+                universal_newlines=True,
+                bufsize=1,
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL)
+        except subprocess.SubprocessError:
+            self._run_cnt = 0
+            raise
+        else:
+            self._run_cnt = 1
+
+    def terminate(self, force=False):
         """Terminate the ``exiftool`` process of this instance.
 
-        If the subprocess isn't running, this method will do nothing.
+        If ``force`` is True, the process will be terminated, regardless
+        of if any other instances of it are still currently being used.
         """
-        if not self.running:
+        self._run_cnt -= 1
+        if not self.running or (not force and self._run_cnt > 0):
             return
+
         self._process.stdin.write("-stay_open\nFalse\n")
         self._process.stdin.flush()
 
@@ -116,16 +158,17 @@ class ExifTool(object):
 
         del self._process
         self._process = None
+        self._run_cnt = 0
 
     def __enter__(self):
-        self.run()
+        self.start()
         return self
 
     def __exit__(self, *_):
         self.terminate()
 
     def __del__(self):
-        self.terminate()
+        self.terminate(force=True)
 
     def _read_stdout(self, buff):
         """Read lines from the subpresses stdout into `buff` in-place until the
@@ -144,7 +187,7 @@ class ExifTool(object):
         an error will be raised.
 
         The final ``-execute`` necessary to actually run the batch is appended
-        automatically; see the documentation of :py:meth:`run()` for the
+        automatically; see the documentation of :py:meth:`start()` for the
         common options. The ``exiftool`` output is read up to the
         end-of-output sentinel and returned as a string, excluding the
         sentinel.
@@ -195,15 +238,11 @@ class ExifTool(object):
         If the exiftool process isn't running, it will automatically be
         started, the commands will be run, then it will be stopped. To enable
         batch processing, use this class as a context manager or call
-        `run()` and `terminate()` manually.
+        `start()` and `terminate()` manually.
         """
 
         if not files:
             return []
-
-        batch = self.running
-        if not batch:
-            self.run()
 
         # Handle single strings vs. lists
         if isinstance(tags, str):
@@ -217,14 +256,14 @@ class ExifTool(object):
         params = ["-" + t for t in tags] if tags else []
         params.extend(files)
 
-        output = self.raw_execute(*params, timeout=timeout)
-        try:
-            data = json.loads(output)
-        except (TypeError, ValueError) as e:
-            raise ValueError("Failed to parse the tool output as JSON. Are "
-                             "the input parameters correct?: {}"
-                             "".format(params)) from e
-
-        if not batch:
-            self.terminate()
+        # Using the context manager here will automatically start/stop the
+        # process if it's not running
+        with self:
+            output = self.raw_execute(*params, timeout=timeout)
+            try:
+                data = json.loads(output)
+            except (TypeError, ValueError) as e:
+                raise ValueError("Failed to parse the tool output as JSON. "
+                                 "Are the input parameters correct?: {}"
+                                 "".format(params)) from e
         return data

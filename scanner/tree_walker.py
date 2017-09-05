@@ -8,6 +8,7 @@ import sys
 from scanner.photo_album import Photo, Album, PhotoAlbumEncoder
 from scanner.cache_path import (next_level, back_level, set_cache_path_base,
                                 json_cache, message, file_mtime)
+from scanner.utils import ExifTool
 
 
 class TreeWalker:
@@ -21,7 +22,12 @@ class TreeWalker:
         set_cache_path_base(config.album)
         self.all_albums = []
         self.all_photos = []
-        self.walk(config.album)
+
+        # Instantiate the ExifTool singleton so all exif operations can reuse
+        # the suprocess in batch mode.
+        with ExifTool():
+            self.walk(config.album)
+
         self.remove_stale()
         message("complete", "")
 
