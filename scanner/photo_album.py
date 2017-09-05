@@ -122,30 +122,19 @@ class Album(object):
             return Album.from_dict(json.load(fp))
 
     @staticmethod
-    def from_dict(dictionary, cripple=True):
+    def from_dict(dictionary):
         album = Album(dictionary["path"])
         for photo in dictionary["photos"]:
             album.add_photo(Photo.from_dict(photo, untrim_base(album.path)))
-        if not cripple:
-            for subalbum in dictionary["albums"]:
-                album.add_album(Album.from_dict(subalbum), cripple)
         album._sort()
         return album
 
-    def to_dict(self, cripple=True):
+    def to_dict(self):
         self._sort()
-        subalbums = []
-        if cripple:
-            for sub in self._albums:
-                if not sub.empty:
-                    subalbums.append({
-                        "path": trim_base_custom(sub.path, self._path),
-                        "date": sub.date
-                    })
-        else:
-            for sub in self._albums:
-                if not sub.empty:
-                    subalbums.append(sub)
+        subalbums = [{
+            "path": trim_base_custom(sub.path, self._path),
+            "date": sub.date
+        } for sub in self._albums if not sub.empty]
         return {
             "path": self.path,
             "date": self.date,
