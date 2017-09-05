@@ -20,6 +20,8 @@ class TreeWalker:
             message("info", "Using a salt to hash files")
 
         set_cache_path_base(config.album)
+        os.makedirs(config.cache, exist_ok=True)
+
         self.all_albums = []
         self.all_photos = []
 
