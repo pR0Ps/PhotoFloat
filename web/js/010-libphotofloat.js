@@ -146,10 +146,7 @@
 			suffix = size.toString() + "s";
 		else
 			suffix = size.toString();
-		hash = PhotoFloat.cachePath(PhotoFloat.photoHash(album, photo) + "_" + suffix + ".jpg");
-		if (hash.indexOf("root-") === 0)
-			hash = hash.substring(5);
-		return "cache/" + hash;
+		return "cache/thumbs/" + photo.hash.slice(0, 2) + "/" + photo.hash.slice(2) + "_" + suffix + ".jpg";
 	};
 	PhotoFloat.originalPhotoPath = function(album, photo) {
 		return "albums/" + album.path + "/" + photo.name;

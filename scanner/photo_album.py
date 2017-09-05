@@ -11,7 +11,7 @@ from wand.image import Image
 from wand.exceptions import WandException
 
 from scanner.utils.exiftool import ExifTool
-from scanner.cache_path import (untrim_base, trim_base, trim_base_custom,
+from scanner.cache_path import (trim_base, trim_base_custom,
                                 json_cache, image_cache, file_mtime, message)
 
 # Format: ((attr_name, exif_tag, [alt_exif_tag, ...]), ...)
@@ -31,7 +31,9 @@ EXIF_TAGMAP = (
     ("dateTime", "DateTime"),
     ("mimeType", "MIMEType")
 )
-TAGS_TO_EXTRACT = ("EXIF:*", "File:MIMEType", "File:FileType")
+TAGS_TO_EXTRACT = (
+    "EXIF:*", "*:ImageWidth", "*:ImageHeight", "File:MIMEType", "File:FileType"
+)
 
 # Format: ((max_size, square?), ..)
 # Note that these are generated in sequence by continually modifying the same
@@ -41,7 +43,8 @@ THUMB_SIZES = ((1600, False), (1024, False), (150, True))
 # TODO: Remove for performance
 @functools.total_ordering
 class Album(object):
-    def __init__(self, path):
+    def __init__(self, config, path):
+        self._config = config
         self._path = trim_base(path)
         self._photos = list()
         self._albums = list()
@@ -100,8 +103,9 @@ class Album(object):
             self._albums.sort()
             self._albums_sorted = True
 
-    def photos_cached(self, cache_root):
-        return all(p.thumbs_cached(cache_root) for p in self.photos)
+    @property
+    def photos_cached(self):
+        return all(p.thumbs_cached for p in self.photos)
 
     @property
     def empty(self):
@@ -114,21 +118,22 @@ class Album(object):
                 return False
         return True
 
-    def cache(self, base_dir):
+    def cache(self):
         self._sort()
-        with open(os.path.join(base_dir, self.cache_path), 'w') as fp:
+        with open(os.path.join(self._config.cache, self.cache_path), 'w') as fp:
             json.dump(self, fp, cls=PhotoAlbumEncoder)
 
     @staticmethod
-    def from_cache(path):
+    def from_cache(config, path):
         with open(path, "r") as fp:
-            return Album.from_dict(json.load(fp))
+            return Album.from_dict(config, json.load(fp))
 
     @staticmethod
-    def from_dict(dictionary):
-        album = Album(dictionary["path"])
+    def from_dict(config, dictionary):
+        album = Album(config, dictionary["path"])
         for photo in dictionary["photos"]:
-            album.add_photo(Photo.from_dict(photo, untrim_base(album.path)))
+            path = os.path.join(config.album, album.path, photo['name'])
+            album.add_photo(Photo.from_dict(config, path, photo))
         album._sort()
         return album
 
@@ -155,58 +160,43 @@ class Album(object):
 @functools.total_ordering
 class Photo(object):
 
-    def __init__(self, path, thumb_dir=None, attributes=None):
-        self._path = trim_base(path)
+    def __init__(self, config, orig_path, attributes=None):
+        self._config = config
+        self._path = trim_base(orig_path)
         self._filetype = None
         self.is_valid = True
         try:
-            mtime = file_mtime(path)
+            mtime = file_mtime(orig_path)
         except OSError:
             self.is_valid = False
             return
+
+        # Made from previous data - don't reprocess images
         if attributes and attributes["dateTimeFile"] >= mtime:
             self._attributes = attributes
             return
+
         self._attributes = {"dateTimeFile": mtime}
 
         # Process exifdata into self._attributes
-        self._metadata(path)
-        if (not self._filetype or
-                not self._attributes.get("mimeType", "").lower().startswith("image/")):
+        try:
+            self._extract_file_metadata(orig_path)
+        except KeyError:
+            # A required metadata field is missing - can't process image
             self.is_valid = False
             return
 
-        # Attempt to conserve as much memory as possible when dealing with
-        # large files - read data for the hash and image directly from the
-        # file. The Image object will store it memory anyway, there's no reason
-        # to do it twice.
+        # Avoid processing non-images
+        if not self._attributes.get("mimeType", "").lower().startswith("image/"):
+            self.is_valid = False
+            return
         try:
-            with open(path, 'rb') as f:
-                # Get hash of file
-                file_hash = hashlib.sha1()
-                while True:
-                    buff = f.read(65536)  # 64K chunks
-                    if not buff:
-                        break
-                    file_hash.update(buff)
-                self._attributes["hash"] = file_hash.hexdigest()
-
-                f.seek(0)
-
-                # Passing the file type as the format is required in some cases
-                # to differentiate between file types. Ex: CR2 files are
-                # incorrectly identified as TIFF files (and error out during
-                # processing) unless the format is specified.
-                with Image(file=f, format=self._filetype) as img:
-                    # Rotation and conversion to jpeg
-                    img.auto_orient()
-                    img.format = 'jpeg'
-                    img.compression_quality = 85
-                    self._thumbnails(img, thumb_dir, path)
+            self._extract_file_data(orig_path)
         except (OSError, WandException):
             self.is_valid = False
+            return
 
-    def _metadata(self, img_path):
+    def _extract_file_metadata(self, img_path):
         """Get metadata about the image via exiftool"""
 
         info = ExifTool().process_files(img_path, tags=TAGS_TO_EXTRACT)[0]
@@ -221,58 +211,112 @@ class Photo(object):
                     value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
                 except (TypeError, ValueError):
                     continue
-            elif (tag_type, tag_name) == ("File", "FileType"):
-                self._filetype = value
-                continue
 
             exif[tag_name] = value
 
         # Pull out exif data into self._attributes
         for attr, *tags in EXIF_TAGMAP:
             for tag in tags:
-                with contextlib.suppress(LookupError):
+                with contextlib.suppress(KeyError):
                     self._attributes[attr] = exif[tag]
                     break
 
-
-    def _thumbnails(self, img, thumb_dir, original_path):
-        """Generate thumbnails"""
-
-        self._attributes["size"] = img.size
+        self._filetype = exif["FileType"]
+        self._attributes["size"] = (exif["ImageWidth"],
+                                    exif["ImageHeight"])
 
         # Taken sideways, invert the dimensions
         if "rotated 90" in self._attributes.get("orientation", "").lower():
             self._attributes["size"] = self._attributes["size"][::-1]
 
+    def _extract_file_data(self, path):
+        """Get data from the file - this involves reading it in its entirety"""
+
+        # Attempt to conserve as much memory as possible when dealing with
+        # large files - read data for the hash and image directly from the
+        # file. The Image object will store it memory anyway, there's no reason
+        # to do it twice.
+        with open(path, 'rb') as fp:
+            # Get a salty hash of the file
+            file_hash = hashlib.sha1()
+            if self._config.salt:
+                file_hash.update(self._config.salt)
+
+            while True:
+                buff = fp.read(65536)  # 64K chunks
+                if not buff:
+                    break
+                file_hash.update(buff)
+            self._attributes["hash"] = file_hash.hexdigest()
+
+            to_generate = self._missing_thumbnails(path)
+            if not to_generate:
+                return
+
+            fp.seek(0)
+            self._generate_thumbnails(fp, to_generate)
+
+    def _convert_msg(self, name, size, square):
+        """"""
+        msg = "{} -> {}px".format(name, size)
+        if square:
+            msg += ", square"
+        return msg
+
+    def _missing_thumbnails(self, path):
+        """Check the filesystem for missing thumbnails for this Photo
+
+        Uses the hash of the current Photo
+        """
+        to_generate = []
         for size, square in THUMB_SIZES:
+            name = os.path.basename(path)
+            thumb = os.path.join(self._config.cache, image_cache(self.hash, size, square))
+            data = (name, thumb, size, square)
 
-            thumb_path = os.path.join(thumb_dir,
-                                      image_cache(self._path, size, square))
-            info_str = "{} -> {}px".format(os.path.basename(original_path), size)
-            if square:
-                info_str += ", square"
-            message("thumbing", info_str)
-
-            if (os.path.exists(thumb_path) and
-                file_mtime(thumb_path) >= self._attributes["dateTimeFile"]):
+            if (os.path.exists(thumb) and
+                    file_mtime(thumb) >= self._attributes["dateTimeFile"]):
+                message("exists", self._convert_msg(name, size, square))
                 continue
 
-            if square:
-                crop = min(*img.size)
-                img.crop(width=crop, height=crop, gravity='center')
+            to_generate.append(data)
+        return to_generate
 
-            img.transform(resize="{0}x{0}>".format(size))
+    def _generate_thumbnails(self, img_fp, thumbnails):
+        """Generate thumbnails"""
 
-            try:
-                img.save(filename=thumb_path)
-            except IOError as e:
-                message("save failure", os.path.basename(thumb_path))
-                with contextlib.suppress(OSError):
-                    os.remove(thumb_path)
-            except KeyboardInterrupt:
-                with contextlib.suppress(OSError):
-                    os.remove(thumb_path)
-                raise
+        # Passing the file type as the format is required in some cases
+        # to differentiate between file types. Ex: CR2 files are
+        # incorrectly identified as TIFF files (and error out during
+        # processing) unless the format is specified.
+        with Image(file=img_fp, format=self._filetype) as img:
+            # Rotation and conversion to jpeg
+            img.auto_orient()
+            img.format = 'jpeg'
+            img.compression_quality = 85
+
+            for name, path, size, square in thumbnails:
+
+                message("thumbing", self._convert_msg(name, size, square))
+                thumb_dir = os.path.dirname(path)
+
+                if square:
+                    crop = min(*img.size)
+                    img.crop(width=crop, height=crop, gravity='center')
+
+                img.transform(resize="{0}x{0}>".format(size))
+
+                try:
+                    os.makedirs(thumb_dir, exist_ok=True)
+                    img.save(filename=path)
+                except IOError as e:
+                    message("save failure", path)
+                    with contextlib.suppress(OSError):
+                        os.remove(path)
+                except KeyboardInterrupt:
+                    with contextlib.suppress(OSError):
+                        os.remove(path)
+                    raise
 
     @property
     def name(self):
@@ -282,16 +326,23 @@ class Photo(object):
         return self.name
 
     @property
+    def hash(self):
+        if not self.is_valid:
+            return None
+        return self.attributes["hash"]
+
+    @property
     def path(self):
         return self._path
 
-    def thumbs_cached(self, cache_root):
-        return all(os.path.exists(os.path.join(cache_root, i))
+    @property
+    def thumbs_cached(self):
+        return all(os.path.exists(os.path.join(self._config.cache, i))
                    for i in self.image_caches)
 
     @property
     def image_caches(self):
-        return [image_cache(self._path, size, square) for size, square in THUMB_SIZES]
+        return [image_cache(self.hash, size, square) for size, square in THUMB_SIZES]
 
     @property
     def date(self):
@@ -314,15 +365,15 @@ class Photo(object):
         return self._attributes
 
     @staticmethod
-    def from_dict(dictionary, basepath):
+    def from_dict(config, path, dictionary):
         dictionary.pop("date")
-        path = os.path.join(basepath, dictionary.pop("name"))
+        dictionary.pop("name")
         for key, value in dictionary.items():
             if key.startswith("dateTime"):
                 with contextlib.suppress(TypeError, ValueError):
                     dictionary[key] = datetime.strptime(value,
                                                         "%a %b %d %H:%M:%S %Y")
-        return Photo(path, None, dictionary)
+        return Photo(config, path, dictionary)
 
     def to_dict(self):
         return {"name": self.name, "date": self.date, **self.attributes}

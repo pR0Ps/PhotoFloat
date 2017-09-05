@@ -217,7 +217,13 @@ class ExifTool(object):
         params = ["-" + t for t in tags] if tags else []
         params.extend(files)
 
-        data = json.loads(self.raw_execute(*params, timeout=timeout))
+        output = self.raw_execute(*params, timeout=timeout)
+        try:
+            data = json.loads(output)
+        except (TypeError, ValueError) as e:
+            raise ValueError("Failed to parse the tool output as JSON. Are "
+                             "the input parameters correct?: {}"
+                             "".format(params)) from e
 
         if not batch:
             self.terminate()

@@ -123,6 +123,48 @@ the static generator:
 After it finishes, you will be all set. Simply have your web server serve pages out of your web
 directory. You may want to do the scanning step in a cronjob.
 
+## Notes on Access Control/Security:
+
+The scanner generates thumbnails for images in the following format: `cache/thumbs/[1st 2 chars of
+hash]/[rest of hash]_[size][square?].jpg`.
+
+While this improves caching for user and reduces the space required on the server, it makes denying
+access to specific image thumbnails very hard (without denying access to all the image thumbnails).
+
+Since the names are not something easily-guessable (like an auto-incrementing number, for example),
+the probability of guessing any valid URL is so close to 0 it might as well be a rounding error
+(`1/(2^160-num_valid_files)`). However, since the names are generated from the file contents, this
+scheme makes it *very* easy to confirm that a specific file exists. You simply hash your file in the
+same way, build a URL using the result, then open it and see if it works.
+
+For this reason, the option to salt the hashes with random data is available. This will prevent
+anyone without the salt from checking if you're hosting a specific file on your server.
+
+#### Optional: Getting salty
+
+The `--salt` switch takes a file as a parameter. Then, when hashing the images to generate the
+filenames, the data from the file is prepended to the image data.
+
+An example of generating a file with 16 bytes of random data in it, then using that data as the
+salt:
+
+    $ cd PhotoFloat
+    $ head -c 16 /dev/urandom > .saltfile
+    $ photofloat --salt .saltfile web/albums web/cache
+
+#### Caveats
+
+One of the major benefits to using this scheme is not having to generate duplicate images and serve
+them to the user. This only works if the filenames stay consistent. The filenames only stay
+consistent if the salt (or lack thereof) stays consistent.
+
+For this reason, when adding/removing/changing the salt, it is advised to delete all the `*.json`
+files in the cache directory before rescanning. This will force all the albums to be re-scanned and
+have new thumbnails (using the new salt) generated. Extra images will automatically be cleaned up
+when scanning completes.
+
+To be clear, everything will still work if the `*.json` are not deleted first, but not as optimally.
+
 ## Optional: Server-side Authentication
 
 The JavaScript application uses a very simple API to determine if a photo can be viewed or not. If a

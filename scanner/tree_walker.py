@@ -11,13 +11,17 @@ from scanner.cache_path import (next_level, back_level, set_cache_path_base,
 
 
 class TreeWalker:
-    def __init__(self, album_path, cache_path):
-        self.album_path = os.path.abspath(album_path)
-        self.cache_path = os.path.abspath(cache_path)
-        set_cache_path_base(self.album_path)
+    def __init__(self, config):
+        self._config = config
+
+        message("info", "Starting directory walk")
+        if config.salt:
+            message("info", "Using a salt to hash files")
+
+        set_cache_path_base(config.album)
         self.all_albums = []
         self.all_photos = []
-        self.walk(self.album_path)
+        self.walk(config.album)
         self.remove_stale()
         message("complete", "")
 
@@ -29,19 +33,19 @@ class TreeWalker:
             return None
 
         message("walking", os.path.basename(path))
-        cache = os.path.join(self.cache_path, json_cache(path))
+        cache = os.path.join(self._config.cache, json_cache(path))
         cached = False
         cached_album = None
         if os.path.exists(cache):
             try:
-                cached_album = Album.from_cache(cache)
-            except (OSError, TypeError, ValueError):
+                cached_album = Album.from_cache(self._config, cache)
+            except (OSError, TypeError, ValueError) as e:
                 message("corrupt cache", os.path.basename(path))
                 cached_album = None
             else:
                 # Check if json or images are out of date
                 if (file_mtime(path) <= file_mtime(cache) and
-                        cached_album.photos_cached(self.cache_path)):
+                        cached_album.photos_cached):
                     message("full cache", os.path.basename(path))
                     cached = True
                     album = cached_album
@@ -50,7 +54,7 @@ class TreeWalker:
                 else:
                     message("partial cache", os.path.basename(path))
         if not cached:
-            album = Album(path)
+            album = Album(self._config, path)
 
         for entry in os.listdir(path):
             if entry[0] == '.':
@@ -69,13 +73,13 @@ class TreeWalker:
                     cached_photo = cached_album.photo_from_path(entry)
                     if (cached_photo and
                             file_mtime(entry) <= cached_photo.attributes["dateTimeFile"] and
-                            cached_photo.thumbs_cached(self.cache_path)):
+                            cached_photo.thumbs_cached):
                         message("cache hit", os.path.basename(entry))
                         cache_hit = True
                         photo = cached_photo
                 if not cache_hit:
                     message("metainfo", os.path.basename(entry))
-                    photo = Photo(entry, self.cache_path)
+                    photo = Photo(self._config, entry)
                 if photo.is_valid:
                     self.all_photos.append(photo)
                     album.add_photo(photo)
@@ -84,7 +88,7 @@ class TreeWalker:
                 back_level()
         if not album.empty:
             message("caching", os.path.basename(path))
-            album.cache(self.cache_path)
+            album.cache()
             self.all_albums.append(album)
         else:
             message("empty", os.path.basename(path))
@@ -93,14 +97,17 @@ class TreeWalker:
 
     def remove_stale(self):
         message("cleanup", "building stale list")
-        all_cache_entries = {}
+        all_cache_entries = set()
         for album in self.all_albums:
-            all_cache_entries[album.cache_path] = True
+            all_cache_entries.add(album.cache_path)
         for photo in self.all_photos:
             for entry in photo.image_caches:
-                all_cache_entries[entry] = True
+                all_cache_entries.add(entry)
+
         message("cleanup", "searching for stale cache entries")
-        for cache in os.listdir(self.cache_path):
-            if cache not in all_cache_entries:
-                message("cleanup", os.path.basename(cache))
-                os.unlink(os.path.join(self.cache_path, cache))
+        for root, _, files in os.walk(self._config.cache):
+            for name in files:
+                fname = os.path.normpath(os.path.join(os.path.relpath(root, self._config.cache), name))
+                if fname not in all_cache_entries:
+                    message("cleanup", fname)
+                    os.unlink(os.path.join(self._config.cache, fname))

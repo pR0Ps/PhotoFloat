@@ -1,3 +1,6 @@
+# Project-specific
+.saltfile
+
 # Editor temp files
 *.swp
 

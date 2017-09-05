@@ -23,9 +23,6 @@ def back_level():
 def set_cache_path_base(base):
     trim_base.base = base
 
-def untrim_base(path):
-    return os.path.join(trim_base.base, path)
-
 def trim_base_custom(path, base):
     if path.startswith(base):
         path = path[len(base):]
@@ -53,12 +50,17 @@ def cache_base(path):
 def json_cache(path):
     return "{}.json".format(cache_base(path))
 
-def image_cache(path, size, square=False):
+def image_cache(img_hash, size, square=False):
+    """Use the hash to name the file
+
+    Output file under the cache will be:
+    `thumbs/[1st 2 chars of hash]/[rest of hash]_[size][square?].jpg`
+    """
     if square:
         suffix = "{}s".format(size)
     else:
         suffix = size
-    return "{}_{}.jpg".format(cache_base(path), suffix)
+    return os.path.join("thumbs", img_hash[:2], "{}_{}.jpg".format(img_hash[2:], suffix))
 
 def file_mtime(path):
     #TODO: timezone?

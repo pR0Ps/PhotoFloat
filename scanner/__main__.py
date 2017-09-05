@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import sys
 import os
 
@@ -9,23 +10,24 @@ from scanner.cache_path import message
 
 def main():
 
-    if len(sys.argv) < 2:
-        print ("""usage: {} <album> [ <cache> ]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("album",
+                        help="A directory where you store a hierarchy of album folders")
+    parser.add_argument("cache", nargs='?',
+                        help="where photofloat will generate thumbnails and other data (default: <album>/../cache)")
+    parser.add_argument("--salt", nargs='?', type=argparse.FileType('rb'),
+                        help="A file containing data to salt the image filenames with")
+    config = parser.parse_args()
 
-<album>: a directory where you store a hierarchy of album folders
-<cache>: where photofloat will generate thumbnails and other data (default: <album>/../cache)
-""".format(sys.argv[0]))
-        return
+    if config.salt:
+        config.salt = config.salt.read()
 
-    album = sys.argv[1]
-    if len(sys.argv) < 3:
-        cache = os.path.join(album, "..", "cache")
-    else:
-        cache = sys.argv[2]
+    if not config.cache:
+        config.cache = os.path.join(config, os.path.pardir, "cache")
 
     try:
         os.umask(0x022)
-        TreeWalker(album, cache)
+        TreeWalker(config)
     except KeyboardInterrupt:
         message("keyboard", "CTRL+C pressed, quitting.")
         sys.exit(-97)
