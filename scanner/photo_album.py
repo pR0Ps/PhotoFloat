@@ -121,7 +121,7 @@ class Album(object):
     def cache(self):
         self._sort()
         with open(os.path.join(self._config.cache, self.cache_path), 'w') as fp:
-            json.dump(self, fp, cls=PhotoAlbumEncoder)
+            json.dump(self, fp, separators=(',', ':'), cls=PhotoAlbumEncoder)
 
     @staticmethod
     def from_cache(config, path):
