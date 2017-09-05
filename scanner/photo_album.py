@@ -100,6 +100,9 @@ class Album(object):
             self._albums.sort()
             self._albums_sorted = True
 
+    def photos_cached(self, cache_root):
+        return all(p.thumbs_cached(cache_root) for p in self.photos)
+
     @property
     def empty(self):
         if len(self._photos) != 0:
@@ -281,6 +284,10 @@ class Photo(object):
     @property
     def path(self):
         return self._path
+
+    def thumbs_cached(self, cache_root):
+        return all(os.path.exists(os.path.join(cache_root, i))
+                   for i in self.image_caches)
 
     @property
     def image_caches(self):

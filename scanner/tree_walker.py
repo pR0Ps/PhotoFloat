@@ -39,7 +39,9 @@ class TreeWalker:
                 message("corrupt cache", os.path.basename(path))
                 cached_album = None
             else:
-                if file_mtime(path) <= file_mtime(cache):
+                # Check if json or images are out of date
+                if (file_mtime(path) <= file_mtime(cache) and
+                        cached_album.photos_cached(self.cache_path)):
                     message("full cache", os.path.basename(path))
                     cached = True
                     album = cached_album
@@ -65,7 +67,9 @@ class TreeWalker:
                 cache_hit = False
                 if cached_album:
                     cached_photo = cached_album.photo_from_path(entry)
-                    if cached_photo and file_mtime(entry) <= cached_photo.attributes["dateTimeFile"]:
+                    if (cached_photo and
+                            file_mtime(entry) <= cached_photo.attributes["dateTimeFile"] and
+                            cached_photo.thumbs_cached(self.cache_path)):
                         message("cache hit", os.path.basename(entry))
                         cache_hit = True
                         photo = cached_photo
