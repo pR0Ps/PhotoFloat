@@ -132,7 +132,7 @@ class Album(object):
     def from_dict(config, dictionary):
         album = Album(config, dictionary["path"])
         for photo in dictionary["photos"]:
-            path = os.path.join(config.album, album.path, photo['name'])
+            path = os.path.join(config.albums, album.path, photo['name'])
             album.add_photo(Photo.from_dict(config, path, photo))
         album._sort()
         return album

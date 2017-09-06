@@ -19,7 +19,7 @@ class TreeWalker:
         if config.salt:
             message("info", "using a salt to hash files")
 
-        set_cache_path_base(config.album)
+        set_cache_path_base(config.albums)
         os.makedirs(config.cache, exist_ok=True)
 
         self.all_albums = []
@@ -28,7 +28,7 @@ class TreeWalker:
         # Instantiate the ExifTool singleton so all exif operations can reuse
         # the suprocess in batch mode.
         with ExifTool():
-            self.walk(config.album)
+            self.walk(config.albums)
 
         self.remove_stale()
         message("complete", "")

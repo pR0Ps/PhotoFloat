@@ -117,8 +117,8 @@ Now that we're in the web directory, let's make a folder for cache and a folder 
 When you're done, fill albums with photos and directories of photos. You can also use symlinks. Run
 the static generator:
 
-    $ photofloat albums cache
-    $ # OR python -m ../scanner albums cache
+    $ photofloat albums
+    $ # OR python -m ../scanner -c cache albums
 
 After it finishes, you will be all set. Simply have your web server serve pages out of your web
 directory. You may want to do the scanning step in a cronjob.
@@ -150,7 +150,7 @@ salt:
 
     $ cd PhotoFloat
     $ head -c 16 /dev/urandom > .saltfile
-    $ photofloat --salt .saltfile web/albums web/cache
+    $ photofloat --salt .saltfile web/albums
 
 #### Caveats
 

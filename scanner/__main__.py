@@ -11,11 +11,11 @@ from scanner.cache_path import message
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("album",
+    parser.add_argument("albums",
                         help="A directory where you store a hierarchy of album folders")
-    parser.add_argument("cache", nargs='?',
-                        help="where photofloat will generate thumbnails and other data (default: <album>/../cache)")
-    parser.add_argument("--salt", nargs='?', type=argparse.FileType('rb'),
+    parser.add_argument("-c", "--cache", nargs='?',
+                        help="where photofloat will generate thumbnails and other data (default: <ALBUM>/../cache)")
+    parser.add_argument("-s", "--salt", nargs='?', type=argparse.FileType('rb'),
                         help="A file containing data to salt the image filenames with"),
     parser.add_argument("--remove-stale", action="store_true",
                         help="Remove stale data/thumbnails from the cache (default: just list them)")
@@ -25,7 +25,7 @@ def main():
         config.salt = config.salt.read()
 
     if not config.cache:
-        config.cache = os.path.join(config, os.path.pardir, "cache")
+        config.cache = os.path.join(config.albums, os.path.pardir, "cache")
 
     try:
         os.umask(0x022)
