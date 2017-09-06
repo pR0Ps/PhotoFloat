@@ -5,10 +5,10 @@ import json
 import os
 import sys
 
-from scanner.photo_album import Photo, Album, PhotoAlbumEncoder
+from scanner.exiftool import ExifTool
 from scanner.cache_path import (next_level, back_level, set_cache_path_base,
                                 json_cache, message, file_mtime)
-from scanner.utils import ExifTool
+from scanner.photo_album import Photo, Album, PhotoAlbumEncoder
 
 
 class TreeWalker:

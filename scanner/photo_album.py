@@ -10,7 +10,7 @@ import os
 from wand.image import Image
 from wand.exceptions import WandException
 
-from scanner.utils.exiftool import ExifTool
+from scanner.exiftool import ExifTool
 from scanner.cache_path import (trim_base, trim_base_custom,
                                 json_cache, image_cache, file_mtime, message)
 
