@@ -181,8 +181,8 @@ class Photo(object):
         # Process exifdata into self._attributes
         try:
             self._extract_file_metadata(orig_path)
-        except KeyError:
-            # A required metadata field is missing - can't process image
+        except (ValueError, KeyError):
+            # Failed to get exif data or a required metadata field is missing
             self.is_valid = False
             return
 

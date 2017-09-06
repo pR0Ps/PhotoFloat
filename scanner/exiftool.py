@@ -148,7 +148,7 @@ class ExifTool(object, metaclass=Singleton):
         if not self.running or (not force and self._run_cnt > 0):
             return
 
-        with contextlib.suppress(OSError):
+        with contextlib.suppress(subprocess.SubprocessError, OSError):
             self._process.stdin.write("-stay_open\nFalse\n")
             self._process.stdin.flush()
 
@@ -176,7 +176,11 @@ class ExifTool(object, metaclass=Singleton):
         """Read lines from the subpresses stdout into `buff` in-place until the
         SENTINEL is encountered"""
         while True:
-            line = self._process.stdout.readline()
+            try:
+                line = self._process.stdout.readline()
+            except AttributeError:
+                # Process was killed and set to None, give up reading
+                break
             if line.strip() == SENTINEL:
                 break
             buff.append(line)
@@ -216,7 +220,7 @@ class ExifTool(object, metaclass=Singleton):
             raise subprocess.TimeoutExpired(params, timeout)
         return "".join(buff)
 
-    def process_files(self, files, *, tags=None, timeout=None):
+    def process_files(self, files, *, tags=None, timeout=5):
         """Process a batch of files with ``exiftool``.
 
         This method processes a single file or a list of files with the
@@ -225,10 +229,12 @@ class ExifTool(object, metaclass=Singleton):
         The tags to extract can be specified with the ``tags`` parameter
         (single strig or a list of strings).
 
-        By default, a ``subprocess.TimeoutExpired`` exception will be raised
-        after 5 seconds * the number of files (ie. 10 seconds to process 2
-        files) if the tool hasn't finished responding. An alternative timeout
-        can be specified with the ``timeout`` parameter.
+        By default, a ``ValueError`` will be raised after 5 seconds * the
+        number of files (ie. 10 seconds to process 2 files) if the tool hasn't
+        responded. This is to prevent getting stuck forever if the tool doesn't
+        respond in a known way. An alternative per-file timeout can be
+        specified with the ``timeout`` parameter (`None` will let the tool run
+        forever).
 
         The return value is a list of dictionaries, mapping tag names to the
         corresponding values. All keys are strings with the tag names including
@@ -252,8 +258,7 @@ class ExifTool(object, metaclass=Singleton):
         if isinstance(files, str):
             files = [files]
 
-        if not timeout:
-            timeout = len(files) * 5
+        timeout = len(files) * timeout if timeout else None
 
         params = ["-" + t for t in tags] if tags else []
         params.extend(files)
@@ -261,11 +266,14 @@ class ExifTool(object, metaclass=Singleton):
         # Using the context manager here will automatically start/stop the
         # process if it's not running
         with self:
-            output = self.raw_execute(*params, timeout=timeout)
+            try:
+                output = self.raw_execute(*params, timeout=timeout)
+            except subprocess.TimeoutExpired as e:
+                raise ValueError("`exiftool` took too long to process the "
+                                 "command '{}'".format(params)) from e
             try:
                 data = json.loads(output)
             except (TypeError, ValueError) as e:
-                raise ValueError("Failed to parse the tool output as JSON. "
-                                 "Are the input parameters correct?: {}"
-                                 "".format(params)) from e
+                raise ValueError("Failed to parse the `exiftool` output as "
+                                 "JSON from the command '{}.".format(params)) from e
         return data
