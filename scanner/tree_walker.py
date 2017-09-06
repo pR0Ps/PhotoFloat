@@ -15,9 +15,9 @@ class TreeWalker:
     def __init__(self, config):
         self._config = config
 
-        message("info", "Starting directory walk")
+        message("info", "starting directory walk")
         if config.salt:
-            message("info", "Using a salt to hash files")
+            message("info", "using a salt to hash files")
 
         set_cache_path_base(config.album)
         os.makedirs(config.cache, exist_ok=True)
@@ -104,7 +104,6 @@ class TreeWalker:
         return album
 
     def remove_stale(self):
-        message("cleanup", "building stale list")
         all_cache_entries = set()
         for album in self.all_albums:
             all_cache_entries.add(album.cache_path)
@@ -112,10 +111,23 @@ class TreeWalker:
             for entry in photo.image_caches:
                 all_cache_entries.add(entry)
 
+        delete_count = 0
         message("cleanup", "searching for stale cache entries")
         for root, _, files in os.walk(self._config.cache):
             for name in files:
                 fname = os.path.normpath(os.path.join(os.path.relpath(root, self._config.cache), name))
                 if fname not in all_cache_entries:
+                    delete_count += 1
                     message("cleanup", fname)
-                    os.unlink(os.path.join(self._config.cache, fname))
+                    if self._config.remove_stale:
+                        os.unlink(os.path.join(self._config.cache, fname))
+
+
+        if self._config.remove_stale:
+            out_str =  "cleaned up {} files"
+        else:
+            out_str = ("{} stale cache entries detected (see above), use "
+                       "'--remove-stale' to delete them")
+
+        if delete_count:
+            message("cleanup", out_str.format(delete_count))

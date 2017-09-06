@@ -143,7 +143,7 @@ anyone without the salt from checking if you're hosting a specific file on your 
 #### Optional: Getting salty
 
 The `--salt` switch takes a file as a parameter. Then, when hashing the images to generate the
-filenames, the data from the file is prepended to the image data.
+filenames, the data from the file is prepended to the image data, changing the final hash.
 
 An example of generating a file with 16 bytes of random data in it, then using that data as the
 salt:
@@ -160,10 +160,11 @@ consistent if the salt (or lack thereof) stays consistent.
 
 For this reason, when adding/removing/changing the salt, it is advised to delete all the `*.json`
 files in the cache directory before rescanning. This will force all the albums to be re-scanned and
-have new thumbnails (using the new salt) generated. Extra images will automatically be cleaned up
-when scanning completes.
+have new thumbnails (using the new salt) generated. Extra images can automatically be cleaned up
+when scanning completes by using the `--remove-stale` option
 
-To be clear, everything will still work if the `*.json` are not deleted first, but not as optimally.
+To be clear, everything will still work if the `*.json` files are not deleted first, but not as
+optimally.
 
 ## Optional: Server-side Authentication
 

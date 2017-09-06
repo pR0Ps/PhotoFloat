@@ -16,7 +16,9 @@ def main():
     parser.add_argument("cache", nargs='?',
                         help="where photofloat will generate thumbnails and other data (default: <album>/../cache)")
     parser.add_argument("--salt", nargs='?', type=argparse.FileType('rb'),
-                        help="A file containing data to salt the image filenames with")
+                        help="A file containing data to salt the image filenames with"),
+    parser.add_argument("--remove-stale", action="store_true",
+                        help="Remove stale data/thumbnails from the cache (default: just list them)")
     config = parser.parse_args()
 
     if config.salt:
