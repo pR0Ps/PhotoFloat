@@ -28,6 +28,7 @@ Example usage::
                                          d["EXIF:DateTimeOriginal"]))
 """
 
+import contextlib
 import subprocess
 from threading import Thread
 import json
@@ -147,14 +148,15 @@ class ExifTool(object, metaclass=Singleton):
         if not self.running or (not force and self._run_cnt > 0):
             return
 
-        self._process.stdin.write("-stay_open\nFalse\n")
-        self._process.stdin.flush()
+        with contextlib.suppress(OSError):
+            self._process.stdin.write("-stay_open\nFalse\n")
+            self._process.stdin.flush()
 
-        # Give it 1 second to shut down nicely, otherwise just kill it
-        try:
-            self._process.wait(timeout=1)
-        except subprocess.TimeoutExpired:
-            self._process.terminate()
+            # Give it 1 second to shut down nicely, otherwise just kill it
+            try:
+                self._process.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                self._process.terminate()
 
         del self._process
         self._process = None
