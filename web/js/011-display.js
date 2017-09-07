@@ -127,7 +127,9 @@ $(document).ready(function() {
 			subalbums = [];
 			for (var i = currentAlbum.albums.length - 1; i >= 0; --i) {
 				link = $("<a href=\"#!/" + photoFloat.albumHash(currentAlbum.albums[i]) + "\"></a>");
-				image = $("<div title=\"" + currentAlbum.albums[i].date + "\" class=\"album-button\">" + currentAlbum.albums[i].path + "</div>");
+				image = $("<div>" + currentAlbum.albums[i].path + "</div>")
+					.addClass("album-button")
+					.attr("title", currentAlbum.albums[i].date);
 				link.append(image);
 				subalbums.push(link);
 				(function(theContainer, theAlbum, theImage, theLink) {
@@ -194,7 +196,9 @@ $(document).ready(function() {
 		$(window).unbind("resize", scaleImage);
 		photoSrc = photoFloat.photoPath(currentAlbum, currentPhoto, maxSize, false);
 		$("#photo")
-			.attr("width", width).attr("height", height).attr("ratio", currentPhoto.size[0] / currentPhoto.size[1])
+			.attr("width", width)
+			.attr("height", height)
+			.attr("ratio", currentPhoto.size[0] / currentPhoto.size[1])
 			.attr("alt", currentPhoto.name)
 			.attr("title", currentPhoto.date)
 			.attr("src", placeholderImage)
@@ -220,7 +224,9 @@ $(document).ready(function() {
 		text = "<table>";
 		if (typeof currentPhoto.make !== "undefined") text += "<tr><td>Camera Maker</td><td>" + currentPhoto.make + "</td></tr>";
 		if (typeof currentPhoto.model !== "undefined") text += "<tr><td>Camera Model</td><td>" + currentPhoto.model + "</td></tr>";
-		if (typeof currentPhoto.date !== "undefined") text += "<tr><td>Time Taken</td><td>" + currentPhoto.date + "</td></tr>";
+		if (typeof currentPhoto.date !== "undefined" && currentPhoto.date != null){
+			text += "<tr><td>Time Taken</td><td>" + currentPhoto.date + "</td></tr>";
+		}
 		if (typeof currentPhoto.size !== "undefined") text += "<tr><td>Resolution</td><td>" + currentPhoto.size[0] + " x " + currentPhoto.size[1] + "</td></tr>";
 		if (typeof currentPhoto.aperture !== "undefined") text += "<tr><td>Aperture</td><td> f/" + currentPhoto.aperture + "</td></tr>";
 		if (typeof currentPhoto.focalLength !== "undefined") text += "<tr><td>Focal Length</td><td>" + currentPhoto.focalLength + "</td></tr>";

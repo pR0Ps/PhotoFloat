@@ -112,10 +112,8 @@ class Album(object):
 
     @property
     def empty(self):
-        if len(self._photos) != 0:
+        if self._photos:
             return False
-        if len(self._albums) == 0:
-            return True
         for album in self._albums:
             if not album.empty:
                 return False
@@ -144,11 +142,11 @@ class Album(object):
         self._sort()
         subalbums = [{
             "path": trim_base_custom(sub.path, self._path),
-            "date": sub.date
+            "date": sub.date if sub.date > datetime.min else None
         } for sub in self._albums if not sub.empty]
         return {
             "path": self.path,
-            "date": self.date,
+            "date": self.date if self.date > datetime.min else None,
             "albums": subalbums,
             "photos": self._photos
         }
@@ -350,10 +348,10 @@ class Photo(object):
     def date(self):
         if not self.is_valid:
             return datetime.min
-        for x in ("dateTimeOriginal", "dateTime", "dateTimeFile"):
+        for x in ("dateTimeOriginal", "dateTime"):
             with contextlib.suppress(KeyError):
                 return self._attributes[x]
-        raise AssertionError("Photo has no date attribute")
+        return datetime.min
 
     def _eq_date(self, other):
         return self.date == other.date
@@ -384,7 +382,11 @@ class Photo(object):
         return Photo(config, path, dictionary)
 
     def to_dict(self):
-        return {"name": self.name, "date": self.date, **self.attributes}
+        return {
+            "name": self.name,
+            "date": self.date if self.date > datetime.min else None,
+            **self.attributes
+        }
 
 class PhotoAlbumEncoder(json.JSONEncoder):
     def default(self, obj):
