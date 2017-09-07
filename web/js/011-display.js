@@ -125,7 +125,7 @@ $(document).ready(function() {
 			thumbsElement.append.apply(thumbsElement, photos);
 			
 			subalbums = [];
-			for (var i = currentAlbum.albums.length - 1; i >= 0; --i) {
+			for (var i = 0; i < currentAlbum.albums.length; ++i) {
 				link = $("<a href=\"#!/" + photoFloat.albumHash(currentAlbum.albums[i]) + "\"></a>");
 				image = $("<div>" + currentAlbum.albums[i].path + "</div>")
 					.addClass("album-button")

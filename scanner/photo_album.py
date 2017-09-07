@@ -69,26 +69,38 @@ class Album(object):
         return json_cache(self.path)
 
     @property
-    def date(self):
-        self._sort()
-        if not self._photos and not self._albums:
-            return datetime.min
-        elif not self._photos:
-            return self._albums[-1].date
-        elif not self._albums:
-            return self._photos[-1].date
-        return max(self._photos[-1].date, self._albums[-1].date)
+    def _sort_date(self):
+        return self.date or datetime.min
 
+    @property
+    def date(self):
+        """The date of the newest photo/subalbum contained in this album"""
+        self._sort()
+        # Newest is at end for photos, the start for albums
+        photo_date = next((x.date for x in reversed(self._photos) if x.date), None)
+        album_date = next((x.date for x in self._albums if x.date), None)
+
+        if not photo_date and not album_date:
+            return None
+        return max(photo_date or album_date, album_date or photo_date)
+
+    # Sort by date (new -> old), alphabetical
+    def _eq_date(self, other):
+        return self._sort_date == other._sort_date
     def __lt__(self, other):
-        return self.date < other.date
+        return (self._sort_date > other._sort_date or
+                (self._eq_date(other) and self.path < other.path))
     def __le__(self, other):
-        return self.date <= other.date
+        return (self._sort_date >= other._sort_date or
+                (self._eq_date(other) and self.path <= other.path))
     def __eq__(self, other):
-        return self.date == other.date
+        return self._eq_date(other) and self.path == other.path
     def __ge__(self, other):
-        return self.date >= other.date
+        return (self._sort_date <= other._sort_date or
+                (self._eq_date(other) and self.path >= other.path))
     def __gt__(self, other):
-        return self.date > other.date
+        return (self._sort_date < other._sort_date or
+                (self._eq_date(other) and self.path > other.path))
 
     def add_photo(self, photo):
         self._photos.append(photo)
@@ -141,12 +153,12 @@ class Album(object):
     def to_dict(self):
         self._sort()
         subalbums = [{
-            "path": trim_base_custom(sub.path, self._path),
-            "date": sub.date if sub.date > datetime.min else None
+            "path": trim_base_custom(sub.path, self.path),
+            "date": sub.date
         } for sub in self._albums if not sub.empty]
         return {
             "path": self.path,
-            "date": self.date if self.date > datetime.min else None,
+            "date": self.date,
             "albums": subalbums,
             "photos": self._photos
         }
@@ -345,26 +357,38 @@ class Photo(object):
         return [image_cache(self.hash, size, square) for size, square in THUMB_SIZES]
 
     @property
-    def date(self):
+    def _sort_date(self):
         if not self.is_valid:
             return datetime.min
+        return self.date or self._attributes["dateTimeFile"]
+
+    @property
+    def date(self):
+        if not self.is_valid:
+            return None
         for x in ("dateTimeOriginal", "dateTime"):
             with contextlib.suppress(KeyError):
                 return self._attributes[x]
-        return datetime.min
+        return None
 
+    # Sort by date (old -> new), alphabetical
+    # Uses file modified time as a fallback date
     def _eq_date(self, other):
-        return self.date == other.date
+        return self._sort_date == other._sort_date
     def __lt__(self, other):
-        return self.date < other.date or (self._eq_date(other) and self.name < other.name)
+        return (self._sort_date < other._sort_date or
+                (self._eq_date(other) and self.name < other.name))
     def __le__(self, other):
-        return self.date <= other.date or (self._eq_date(other) and self.name <= other.name)
+        return (self._sort_date <= other._sort_date or
+                (self._eq_date(other) and self.name <= other.name))
     def __eq__(self, other):
         return self._eq_date(other) and self.name == other.name
     def __ge__(self, other):
-        return self.date >= other.date or (self._eq_date(other) and self.name >= other.name)
+        return (self._sort_date >= other._sort_date or
+                (self._eq_date(other) and self.name >= other.name))
     def __gt__(self, other):
-        return self.date > other.date or (self._eq_date(other) and self.name > other.name)
+        return (self._sort_date > other._sort_date or
+                (self._eq_date(other) and self.name > other.name))
 
     @property
     def attributes(self):
@@ -384,7 +408,7 @@ class Photo(object):
     def to_dict(self):
         return {
             "name": self.name,
-            "date": self.date if self.date > datetime.min else None,
+            "date": self.date,
             **self.attributes
         }
 

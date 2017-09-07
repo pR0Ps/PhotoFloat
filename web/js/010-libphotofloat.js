@@ -53,7 +53,7 @@
 			}
 			else{
 				// Delegate picking thumb to newest subalbum (first one shown)
-				self.album(album.albums[album.albums.length - 1], nextAlbum, error);
+				self.album(album.albums[0], nextAlbum, error);
 			}
 		};
 		if (typeof subalbum.photos !== "undefined" && subalbum.photos !== null)
