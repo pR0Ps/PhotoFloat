@@ -2,7 +2,6 @@
 
 import contextlib
 from datetime import datetime
-import functools
 import hashlib
 import json
 import os
@@ -40,8 +39,7 @@ TAGS_TO_EXTRACT = (
 # buffer. Ex: 1600 -> 1024 -> 150s will work. The reverse won't.
 THUMB_SIZES = ((1600, False), (1024, False), (150, True))
 
-# TODO: Remove for performance
-@functools.total_ordering
+
 class Album(object):
     def __init__(self, config, path):
         self._config = config
@@ -73,19 +71,24 @@ class Album(object):
     @property
     def date(self):
         self._sort()
-        if len(self._photos) == 0 and len(self._albums) == 0:
+        if not self._photos and not self._albums:
             return datetime.min
-        elif len(self._photos) == 0:
+        elif not self._photos:
             return self._albums[-1].date
-        elif len(self._albums) == 0:
+        elif not self._albums:
             return self._photos[-1].date
         return max(self._photos[-1].date, self._albums[-1].date)
 
-    # functools.total_ordering takes care of the rest
-    def __eq__(self, other):
-        return self.date == other.date
     def __lt__(self, other):
         return self.date < other.date
+    def __le__(self, other):
+        return self.date <= other.date
+    def __eq__(self, other):
+        return self.date == other.date
+    def __ge__(self, other):
+        return self.date >= other.date
+    def __gt__(self, other):
+        return self.date > other.date
 
     def add_photo(self, photo):
         self._photos.append(photo)
@@ -156,8 +159,7 @@ class Album(object):
                 return photo
         return None
 
-# TODO: Remove for performance
-@functools.total_ordering
+
 class Photo(object):
 
     def __init__(self, config, orig_path, attributes=None):
@@ -353,12 +355,18 @@ class Photo(object):
                 return self._attributes[x]
         raise AssertionError("Photo has no date attribute")
 
-    # functools.total_ordering takes care of the rest
-    def __eq__(self, other):
-        return self.date == other.date and self.name == other.name
+    def _eq_date(self, other):
+        return self.date == other.date
     def __lt__(self, other):
-        return self.date < other.date or (self.date == other.date and
-                                          self.name < other.name)
+        return self.date < other.date or (self._eq_date(other) and self.name < other.name)
+    def __le__(self, other):
+        return self.date <= other.date or (self._eq_date(other) and self.name <= other.name)
+    def __eq__(self, other):
+        return self._eq_date(other) and self.name == other.name
+    def __ge__(self, other):
+        return self.date >= other.date or (self._eq_date(other) and self.name >= other.name)
+    def __gt__(self, other):
+        return self.date > other.date or (self._eq_date(other) and self.name > other.name)
 
     @property
     def attributes(self):
