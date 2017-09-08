@@ -101,11 +101,11 @@ Modify the part that says UA-XXXXXX-X and put your own in there.
 
 #### Build the web page.
 
-This simply runs all the javascript through Google Closure Compiler and all the CSS through YUI
-Compressor to minify and concatenate everything. Be sure you have java installed.
+This simply compresses the javascript and css. Be sure you have nodejs installed.
 
     $ cd web
-    $ make
+    $ npm install
+    $ npm run build
 
 #### Generate the albums:
 

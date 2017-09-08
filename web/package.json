@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "scripts": {
+    "clean": "rm css/*.min.* js/*.min.* || echo No files to clean",
+    "build:js": "uglifyjs js/*.js --compress --mangle -o js/scripts.min.js --source-map \"filename='js/scripts.min.js.map'\" ",
+    "build:css": "csso css/* -o css/styles.min.css --map css/styles.min.css.map",
+    "build": "npm run clean && npm run build:js && npm run build:css"
+  },
+  "license": "GPL-2.0",
+  "devDependencies": {
+    "csso-cli": "^1.0.0",
+    "prettier": "^1.6.1",
+    "uglify-js": "^3.0.28"
+  }
+}
