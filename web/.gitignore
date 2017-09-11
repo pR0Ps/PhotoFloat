@@ -2,6 +2,8 @@
 albums/
 cache/
 
+# built files
+build/
 *.map
 
 # NodeJS

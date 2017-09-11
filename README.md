@@ -97,20 +97,28 @@ Modify the part that says UA-XXXXXX-X and put your own in there.
 
 #### Tweak the index.html page to have a custom title or copyright notice.
 
-    $ vim web/index.html
+    $ vim web/public/index.html
 
 #### Build the web page.
 
-This simply compresses the javascript and css. Be sure you have nodejs installed.
+Be sure you have nodejs installed. This will compile the webapp into the build folder.
 
     $ cd web
     $ npm install
     $ npm run build
 
+#### Choose folder to serve files from
+
+You need to move these built web files to a different directory to serve from because the build
+folder gets cleaned out every build.
+
+    $ cp -R build/ /path/to/your/public_www/
+
 #### Generate the albums:
 
-Now that we're in the web directory, let's make a folder for cache and a folder for the pictures:
+Now in your public_www directory, let's make a folder for cache and a folder for the pictures:
 
+    $ cd /path/to/your/public_www/
     $ mkdir albums
     $ mkdir cache
 
@@ -118,10 +126,10 @@ When you're done, fill albums with photos and directories of photos. You can als
 the static generator:
 
     $ photofloat albums
-    $ # OR python -m ../scanner -c cache albums
+    $ # OR python -m /path/to/PhotoFloat/scanner -c cache albums
 
-After it finishes, you will be all set. Simply have your web server serve pages out of your web
-directory. You may want to do the scanning step in a cronjob.
+After it finishes, you will be all set. Simply have your web server serve pages out of your
+public_www directory. You may want to do the scanning step in a cronjob.
 
 ## Notes on Access Control/Security:
 
@@ -150,7 +158,7 @@ salt:
 
     $ cd PhotoFloat
     $ head -c 16 /dev/urandom > .saltfile
-    $ photofloat --salt .saltfile web/albums
+    $ photofloat --salt .saltfile public_www/albums
 
 #### Caveats
 
