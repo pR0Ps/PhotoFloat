@@ -1,3 +1,15 @@
 # Content/generated files
 albums/
 cache/
+
+# built files
+build/
+*.map
+
+# NodeJS
+# Dependency directories
+node_modules/
+# Logs
+logs
+*.log
+npm-debug.log*
