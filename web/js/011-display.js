@@ -1,20 +1,20 @@
 $(document).ready(function() {
   /* 
-	 * The display is not yet object oriented. It's procedural code
-	 * broken off into functions. It makes use of libphotofloat's
-	 * PhotoFloat class for the network and management logic.
-	 * 
-	 * All of this could potentially be object oriented, but presently
-	 * it should be pretty readable and sufficient. The only thing to
-	 * perhaps change in the future would be to consolidate calls to
-	 * jQuery selectors. And perhaps it'd be nice to move variable
-	 * declarations to the top, to stress that JavaScript scope is
-	 * for an entire function and always hoisted.
-	 * 
-	 * None of the globals here polutes the global scope, as everything
-	 * is enclosed in an anonymous function.
-	 * 
-	 */
+   * The display is not yet object oriented. It's procedural code
+   * broken off into functions. It makes use of libphotofloat's
+   * PhotoFloat class for the network and management logic.
+   *
+   * All of this could potentially be object oriented, but presently
+   * it should be pretty readable and sufficient. The only thing to
+   * perhaps change in the future would be to consolidate calls to
+   * jQuery selectors. And perhaps it'd be nice to move variable
+   * declarations to the top, to stress that JavaScript scope is
+   * for an entire function and always hoisted.
+   *
+   * None of the globals here polutes the global scope, as everything
+   * is enclosed in an anonymous function.
+   *
+   */
 
   /* Globals */
 
@@ -26,7 +26,7 @@ $(document).ready(function() {
   var originalTitle = document.title;
   var photoFloat = new PhotoFloat();
   var maxSize = 1024;
-  var placeholderImage = "../img/loading.gif";
+  var placeholderImage = "assets/loading.gif"; // Relative to current path
 
   /* Displays */
 

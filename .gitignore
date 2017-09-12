@@ -1,6 +1,14 @@
 # Project-specific
 .saltfile
 
+# Generated files
+web/public/albums
+web/public/cache
+*.min.js
+*.min.js.map
+*.min.css
+*.min.css.map
+
 # Editor temp files
 *.swp
 
@@ -14,6 +22,8 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+node_modules
+package-lock.json
 build/
 develop-eggs/
 dist/

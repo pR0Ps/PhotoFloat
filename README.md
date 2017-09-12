@@ -51,7 +51,7 @@ It is, essentially, the slickest and fastest, most minimal but still well-featur
 Use the included `setup.py` to install the package. You will probably want to do this in a
 [virtual environment](https://virtualenv.pypa.io/en/stable/).
 
-    $ virtualenv -p python2 .venv
+    $ virtualenv -p python3 .venv
     $ source .venv/bin/activate
     $ pip install .
 
@@ -107,18 +107,11 @@ Be sure you have nodejs installed. This will compile the webapp into the build f
     $ npm install
     $ npm run build
 
-#### Choose folder to serve files from
-
-You need to move these built web files to a different directory to serve from because the build
-folder gets cleaned out every build.
-
-    $ cp -R build/ /path/to/your/public_www/
-
 #### Generate the albums:
 
-Now in your public_www directory, let's make a folder for cache and a folder for the pictures:
+Now in your public directory, let's make a folder for cache and a folder for the pictures:
 
-    $ cd /path/to/your/public_www/
+    $ cd /path/to/PhotoFloat/web/public
     $ mkdir albums
     $ mkdir cache
 
@@ -128,8 +121,8 @@ the static generator:
     $ photofloat albums
     $ # OR python -m /path/to/PhotoFloat/scanner -c cache albums
 
-After it finishes, you will be all set. Simply have your web server serve pages out of your
-public_www directory. You may want to do the scanning step in a cronjob.
+After it finishes, you will be all set. Simply have your web server serve pages out of your public
+directory. You may want to do the scanning step in a cronjob.
 
 ## Notes on Access Control/Security:
 
@@ -158,7 +151,7 @@ salt:
 
     $ cd PhotoFloat
     $ head -c 16 /dev/urandom > .saltfile
-    $ photofloat --salt .saltfile public_www/albums
+    $ photofloat --salt .saltfile public/albums
 
 #### Caveats
 

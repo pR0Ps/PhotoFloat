@@ -1,12 +1,11 @@
 {
   "version": "1.0.0",
   "scripts": {
-    "clean": "rm -rf build/",
-    "build:js":
-      "mkdir -p build/js && uglifyjs js/*.js --compress --mangle -o build/js/scripts.min.js --source-map \"url='scripts.min.js.map',includeSources=true\" ",
-    "build:css":
-      "mkdir -p build/css && csso css/* -o build/css/styles.min.css --map build/css/styles.min.css.map",
-    "build": "npm run clean && npm run build:js && npm run build:css && cp -R public/* build/"
+    "clean": "rm -f public/assets/scripts.min.js* public/assets/styles.min.css*",
+    "prettier": "prettier --write {css,js}/*",
+    "build:js": "uglifyjs js/*.js --compress --mangle -o public/assets/scripts.min.js --source-map \"url='scripts.min.js.map',includeSources=true\" ",
+    "build:css": "cat css/*.css | csso -o public/assets/styles.min.css --map public/assets/styles.min.css.map",
+    "build": "npm run prettier && npm run clean && npm run build:js && npm run build:css"
   },
   "license": "GPL-2.0",
   "devDependencies": {
