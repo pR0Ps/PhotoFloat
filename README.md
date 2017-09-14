@@ -83,17 +83,21 @@ the following commands from [this comment](https://github.com/dahlia/wand/issues
     $ brew install freetype imagemagick@6
     $ export MAGICK_HOME=/usr/local/opt/imagemagick@6
 
-#### Change or delete the Google Analytics ID tracker:
+#### Enable or delete the Google Analytics ID tracker:
 
-To delete:
+Analytics are disabled by default but the JavaScript that provides the functionality will still be
+sent to the client.
+
+To remove the analytics code completely:
 
     $ rm web/js/999-googletracker.js
 
-To change:
+To enable analytics:
 
     $ vim web/js/999-googletracker.js
 
-Modify the part that says UA-XXXXXX-X and put your own in there.
+Set `var analyticsId = "UA-XXXXXXXX-X";` at the top of the file (where `UA-XXXXXXXX-X` is your
+personal analytics tracking ID).
 
 #### Tweak the index.html page to have a custom title or copyright notice.
 
@@ -101,7 +105,7 @@ Modify the part that says UA-XXXXXX-X and put your own in there.
 
 #### Build the web page.
 
-Be sure you have nodejs installed. This will compile the webapp into the build folder.
+Be sure you have `nodejs` and `npm` installed. This will compile the webapp into the public folder.
 
     $ cd web
     $ npm install
