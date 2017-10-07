@@ -130,7 +130,7 @@
       .toLowerCase();
     while (path.indexOf("--") !== -1) path = path.replace(/--/g, "-");
     while (path.indexOf("__") !== -1) path = path.replace(/__/g, "_");
-    return path;
+    return encodeURIComponent(path);
   };
   PhotoFloat.photoHash = function(album, photo) {
     return PhotoFloat.albumHash(album) + "/" + PhotoFloat.cachePath(photo.name);
