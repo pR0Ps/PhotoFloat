@@ -349,11 +349,14 @@ class Photo(object):
 
     @property
     def thumbs_cached(self):
-        return all(os.path.exists(os.path.join(self._config.cache, i))
-                   for i in self.image_caches)
+        return self.is_valid and all(
+            os.path.exists(os.path.join(self._config.cache, i)) for i in self.image_caches
+        )
 
     @property
     def image_caches(self):
+        if not self.is_valid:
+            return None
         return [image_cache(self.hash, size, square) for size, square in THUMB_SIZES]
 
     @property
