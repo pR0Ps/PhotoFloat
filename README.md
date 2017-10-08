@@ -30,7 +30,7 @@ from the `cache` folder to create a speedy interface. Features include:
 * Photo pre-loading
 * Smooth up and down scaling
 * Metadata display
-* Consistant hash url format
+* Consistent hash url format
 * Linkable states via ajax urls
 * Facebook meta tags for thumbnail and post type
 * Link to original images (can be turned off)

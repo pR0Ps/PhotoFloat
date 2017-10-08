@@ -131,7 +131,6 @@ $(document).ready(function() {
             '"' +
             'src="' +
             placeholderImage +
-            '"' +
             '" height="150" width="150" />'
         );
         image.get(0).photo = currentAlbum.photos[i];
