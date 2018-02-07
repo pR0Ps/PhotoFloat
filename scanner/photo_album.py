@@ -69,10 +69,6 @@ class Album(object):
         return json_cache(self.path)
 
     @property
-    def _sort_date(self):
-        return self.date or datetime.min
-
-    @property
     def date(self):
         """The date of the newest photo/subalbum contained in this album"""
         self._sort()
@@ -84,23 +80,21 @@ class Album(object):
             return None
         return max(photo_date or album_date, album_date or photo_date)
 
-    # Sort by date (new -> old), alphabetical
-    def _eq_date(self, other):
-        return self._sort_date == other._sort_date
+    # Sort by reverse date taken (new -> old), alphabetical
+    @property
+    def _sort_data(self):
+        return (datetime.max - (self.date or datetime.min), self.path)
+
     def __lt__(self, other):
-        return (self._sort_date > other._sort_date or
-                (self._eq_date(other) and self.path < other.path))
+        return self._sort_data < other._sort_data
     def __le__(self, other):
-        return (self._sort_date >= other._sort_date or
-                (self._eq_date(other) and self.path <= other.path))
+        return self._sort_data <= other._sort_data
     def __eq__(self, other):
-        return self._eq_date(other) and self.path == other.path
+        return self._sort_data == other._sort_data
     def __ge__(self, other):
-        return (self._sort_date <= other._sort_date or
-                (self._eq_date(other) and self.path >= other.path))
+        return self._sort_data >= other._sort_data
     def __gt__(self, other):
-        return (self._sort_date < other._sort_date or
-                (self._eq_date(other) and self.path > other.path))
+        return self._sort_data > other._sort_data
 
     def add_photo(self, photo):
         self._photos.append(photo)
@@ -360,12 +354,6 @@ class Photo(object):
         return [image_cache(self.hash, size, square) for size, square in THUMB_SIZES]
 
     @property
-    def _sort_date(self):
-        if not self.is_valid:
-            return datetime.min
-        return self.date or self._attributes["dateTimeFile"]
-
-    @property
     def date(self):
         if not self.is_valid:
             return None
@@ -374,24 +362,21 @@ class Photo(object):
                 return self._attributes[x]
         return None
 
-    # Sort by date (old -> new), alphabetical
-    # Uses file modified time as a fallback date
-    def _eq_date(self, other):
-        return self._sort_date == other._sort_date
+    # Sort by date taken (old -> new), alphabetical
+    @property
+    def _sort_data(self):
+        return (self.date or datetime.min, self.name)
+
     def __lt__(self, other):
-        return (self._sort_date < other._sort_date or
-                (self._eq_date(other) and self.name < other.name))
+        return self._sort_data < other._sort_data
     def __le__(self, other):
-        return (self._sort_date <= other._sort_date or
-                (self._eq_date(other) and self.name <= other.name))
+        return self._sort_data <= other._sort_data
     def __eq__(self, other):
-        return self._eq_date(other) and self.name == other.name
+        return self._sort_data == other._sort_data
     def __ge__(self, other):
-        return (self._sort_date >= other._sort_date or
-                (self._eq_date(other) and self.name >= other.name))
+        return self._sort_data >= other._sort_data
     def __gt__(self, other):
-        return (self._sort_date > other._sort_date or
-                (self._eq_date(other) and self.name > other.name))
+        return self._sort_data > other._sort_data
 
     @property
     def attributes(self):
