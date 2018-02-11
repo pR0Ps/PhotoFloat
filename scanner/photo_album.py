@@ -65,11 +65,20 @@ def parse_focal_length(x):
     m = re.match("(.*) mm \(35 mm equivalent: (.*) mm\)", x)
     return m.group(2) if m else x
 
+def parse_description(x):
+    """Strip whitespace and ignore some auto-generated descriptions"""
+    x = x.strip()
+    # Olympus misuses the description field...
+    if x == "OLYMPUS DIGITAL CAMERA":
+        return None
+    return x
+
 drop_unknown = lambda x: x if not x.lower().startswith("unknown") else None
 drop_zero = lambda x: x if x != 0 else None
 TAG_PROCESSORS = {
     "Composite:Aperture": drop_zero,
     "Composite:DateTimeOriginal": parse_date,
+    "Composite:Description": parse_description,
     "Composite:FocalLength35efl": parse_focal_length,
     "Composite:GPSDateTime": parse_date,
     "Composite:GPSPosition": lambda x: list(map(float, x.split(", "))),
