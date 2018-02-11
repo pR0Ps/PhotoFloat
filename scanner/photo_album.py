@@ -86,7 +86,7 @@ TAG_PROCESSORS = {
 # Format: ((max_size, square?), ..)
 # Note that these are generated in sequence by continually modifying the same
 # buffer. Ex: 1600 -> 1024 -> 150s will work. The reverse won't.
-THUMB_SIZES = ((1600, False), (1024, False), (150, True))
+THUMB_SIZES = ((1600, 85, False), (1024, 85, False), (150, 70, True))
 
 
 class Album(object):
@@ -323,10 +323,10 @@ class Photo(object):
         Uses the hash of the current Photo
         """
         to_generate = []
-        for size, square in THUMB_SIZES:
+        for size, quality, square in THUMB_SIZES:
             name = os.path.basename(path)
             thumb = os.path.join(self._config.cache, image_cache(self.hash, size, square))
-            data = (name, thumb, size, square)
+            data = (name, thumb, size, quality, square)
 
             if (os.path.exists(thumb) and
                     file_mtime(thumb) >= self._attributes["dateModified"]):
@@ -347,9 +347,8 @@ class Photo(object):
             # Rotation and conversion to jpeg
             img.auto_orient()
             img.format = 'jpeg'
-            img.compression_quality = 85
 
-            for name, path, size, square in thumbnails:
+            for name, path, size, quality, square in thumbnails:
 
                 message("thumbing", self._convert_msg(name, size, square))
                 thumb_dir = os.path.dirname(path)
@@ -359,6 +358,7 @@ class Photo(object):
                     img.crop(width=crop, height=crop, gravity='center')
 
                 img.transform(resize="{0}x{0}>".format(size))
+                img.compression_quality = quality
 
                 try:
                     os.makedirs(thumb_dir, exist_ok=True)
@@ -399,7 +399,7 @@ class Photo(object):
     def image_caches(self):
         if not self.is_valid:
             return None
-        return [image_cache(self.hash, size, square) for size, square in THUMB_SIZES]
+        return [image_cache(self.hash, size, square) for size, _, square in THUMB_SIZES]
 
     @property
     def date(self):
