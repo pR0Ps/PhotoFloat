@@ -218,49 +218,31 @@ $(document).ready(function() {
     setTimeout(scrollToThumb, 1);
   }
   function scaleImage() {
-    var image, container;
-    image = $("#photo");
-    if (image.get(0) === this) $(window).bind("resize", scaleImage);
-    container = $("#photo-view");
-    if (
-      image.css("width") !== "100%" &&
-      container.height() * image.attr("ratio") > container.width()
-    )
-      image
-        .css("width", "100%")
-        .css("height", "auto")
-        .css("position", "absolute")
-        .css("bottom", 0);
-    else if (image.css("height") !== "100%")
-      image
-        .css("height", "100%")
-        .css("width", "auto")
-        .css("position", "")
-        .css("bottom", "");
+    if (currentPhoto == null) {
+      return;
+    }
+    var image = $("#photo");
+    var container = $("#photo-view");
+    var ir = currentPhoto.size[0] / currentPhoto.size[1];
+    var cw = container.width();
+    var ch = container.height();
+
+    image.css("max-width", cw).css("max-height", ch);
+    if (ir > cw / ch) {
+      image.css("width", "100%").css("height", "auto");
+    } else {
+      image.css("width", "auto").css("height", "100%");
+    }
   }
   function showPhoto() {
-    var width, height, photoSrc, previousPhoto, nextPhoto, nextLink, text;
-    width = currentPhoto.size[0];
-    height = currentPhoto.size[1];
-    if (width > height) {
-      height = height / width * maxSize;
-      width = maxSize;
-    } else {
-      width = width / height * maxSize;
-      height = maxSize;
-    }
-    $(window).unbind("resize", scaleImage);
+    var image, photoSrc, previousPhoto, nextPhoto, nextLink, text;
     photoSrc = photoFloat.photoPath(currentAlbum, currentPhoto, maxSize, false);
-    $("#photo")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("ratio", currentPhoto.size[0] / currentPhoto.size[1])
+    image = $("#photo");
+    image
       .attr("alt", currentPhoto.name)
       .attr("title", currentPhoto.date)
-      .attr("src", placeholderImage);
-    $("#photo")
-      .attr("src", photoSrc)
-      .on("load", scaleImage);
+      .attr("src", photoFloat.photoPath(currentAlbum, currentPhoto, 150, true));
+    image.attr("src", photoSrc).on("load", scaleImage);
     $("head").append('<link rel="image_src" href="' + photoSrc + '" />');
 
     previousPhoto =
@@ -434,6 +416,7 @@ $(document).ready(function() {
 
   /* Event listeners */
 
+  $(window).on("resize", scaleImage);
   $(window).on("hashchange", function() {
     $("#loading").show();
     $("link[rel=image_src]").remove();
