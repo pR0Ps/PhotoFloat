@@ -298,6 +298,8 @@ $(document).ready(function() {
     if (typeof currentPhoto.model !== "undefined")
       text +=
         "<tr><td>Camera Model</td><td>" + currentPhoto.model + "</td></tr>";
+    if (typeof currentPhoto.lens !== "undefined")
+      text += "<tr><td>Camera Lens</td><td>" + currentPhoto.lens + "</td></tr>";
     if (typeof currentPhoto.date !== "undefined" && currentPhoto.date != null) {
       text += "<tr><td>Time Taken</td><td>" + currentPhoto.date + "</td></tr>";
     }
@@ -323,15 +325,12 @@ $(document).ready(function() {
         "</td></tr>";
     if (typeof currentPhoto.iso !== "undefined")
       text += "<tr><td>ISO</td><td>" + currentPhoto.iso + "</td></tr>";
-    if (typeof currentPhoto.sceneCaptureType !== "undefined")
+    if (typeof currentPhoto.fov !== "undefined")
+      text += "<tr><td>FOV</td><td>" + currentPhoto.fov + "</td></tr>";
+    if (typeof currentPhoto.shutter !== "undefined")
       text +=
-        "<tr><td>Scene Capture Type</td><td>" +
-        currentPhoto.sceneCaptureType +
-        "</td></tr>";
-    if (typeof currentPhoto.exposureTime !== "undefined")
-      text +=
-        "<tr><td>Exposure Time</td><td>" +
-        currentPhoto.exposureTime +
+        "<tr><td>Shutter Speed</td><td>" +
+        currentPhoto.shutter +
         " sec</td></tr>";
     if (typeof currentPhoto.exposureProgram !== "undefined")
       text +=
@@ -343,15 +342,10 @@ $(document).ready(function() {
         "<tr><td>Exposure Compensation</td><td>" +
         currentPhoto.exposureCompensation +
         "</td></tr>";
-    if (typeof currentPhoto.spectralSensitivity !== "undefined")
+    if (typeof currentPhoto.meteringMode !== "undefined")
       text +=
-        "<tr><td>Spectral Sensitivity</td><td>" +
-        currentPhoto.spectralSensitivity +
-        "</td></tr>";
-    if (typeof currentPhoto.sensingMethod !== "undefined")
-      text +=
-        "<tr><td>Sensing Method</td><td>" +
-        currentPhoto.sensingMethod +
+        "<tr><td>Metering Mode</td><td>" +
+        currentPhoto.meteringMode +
         "</td></tr>";
     if (typeof currentPhoto.lightSource !== "undefined")
       text +=
@@ -368,6 +362,37 @@ $(document).ready(function() {
     if (typeof currentPhoto.mimeType !== "undefined")
       text +=
         "<tr><td>MIME Type</td><td>" + currentPhoto.mimeType + "</td></tr>";
+    if (typeof currentPhoto.creator !== "undefined")
+      text +=
+        "<tr><td>Photographer</td><td>" + currentPhoto.creator + "</td></tr>";
+    if (typeof currentPhoto.caption !== "undefined")
+      text += "<tr><td>Caption</td><td>" + currentPhoto.caption + "</td></tr>";
+    if (typeof currentPhoto.keywords !== "undefined")
+      text +=
+        "<tr><td>Keywords</td><td>" +
+        currentPhoto.keywords.join(", ") +
+        "</td></tr>";
+    if (typeof currentPhoto.gps !== "undefined") {
+      var lat = currentPhoto.gps[0];
+      var lon = currentPhoto.gps[1];
+      text +=
+        "<tr><td>Location</td><td>" +
+        "<a target='_blank' href='https://www.openstreetmap.org/?mlat=" +
+        lat +
+        "&mlon=" +
+        lon +
+        "#map=15/" +
+        lat +
+        "/" +
+        lon +
+        "'>OpenStreetMap</a>, " +
+        "<a target='_blank' href='https://www.google.com/maps/search/?api=1&query=" +
+        lat +
+        "," +
+        lon +
+        "'>Google Maps</a>" +
+        "</td></tr>";
+    }
     text += "</table>";
     $("#metadata").html(text);
 

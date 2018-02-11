@@ -5,6 +5,7 @@ from datetime import datetime
 import hashlib
 import json
 import os
+import re
 
 from wand.image import Image
 from wand.exceptions import WandException
@@ -13,26 +14,74 @@ from scanner.exiftool import ExifTool
 from scanner.cache_path import (trim_base, trim_base_custom,
                                 json_cache, image_cache, file_mtime, message)
 
-# Format: ((attr_name, exif_tag, [alt_exif_tag, ...]), ...)
-EXIF_TAGMAP = (
-    ("make", "Make"), ("model", "Model"), ("focalLength", "FocalLength"),
-    ("iso", "PhotographicSensitivity", "ISO", "ISOSpeedRatings"),
-    ("orientation", "Orientation"),
-    ("aperture", "FNumber", "ApertureValue"),
-    ("exposureTime", "ExposureTime"), ("flash", "Flash"),
-    ("lightSource", "LightSource"), ("exposureProgram", "ExposureProgram"),
-    ("spectralSensitivity", "SpectralSensitivity"),
-    ("meteringMode", "MeteringMode"), ("sensingMethod", "SensingMethod"),
-    ("sceneCaptureType", "SceneCaptureType"),
-    ("subjectDistanceRange", "SubjectDistanceRange"),
-    ("exposureCompensation", "ExposureBiasValue", "ExposureCompensation"),
-    ("dateTimeOriginal", "DateTimeOriginal", "DateTimeDigitized"),
-    ("dateTime", "DateTime"),
-    ("mimeType", "MIMEType")
-)
 TAGS_TO_EXTRACT = (
-    "EXIF:*", "*:ImageWidth", "*:ImageHeight", "File:MIMEType", "File:FileType"
+    "EXIF:*", "Composite:*", "File:MIMEType", "File:FileType"
 )
+TAGMAP = {
+    # Camera properties
+    "make": "EXIF:Make",
+    "model": "EXIF:Model",
+    "lens": "Composite:LensID",
+
+    # How the photo was taken
+    "aperture": "Composite:Aperture",
+    "exposureCompensation": "EXIF:ExposureCompensation",
+    "exposureProgram": "EXIF:ExposureProgram",
+    "flash": "EXIF:Flash",
+    "focalLength": "Composite:FocalLength35efl",
+    "fov": "Composite:FOV",
+    "iso": "Composite:ISO",
+    "lightSource": "EXIF:LightSource",
+    "meteringMode": "EXIF:MeteringMode",
+    "shutter": "Composite:ShutterSpeed",
+    "subjectDistanceRange": "EXIF:SubjectDistanceRange",
+
+    # Photo metadata
+    "creator": "Composite:Creator",
+    "caption": "Composite:Description",
+    "keywords": "Composite:Keywords",
+    "gps": "Composite:GPSPosition",
+
+    # Properties of the resulting image
+    "orientation": "Composite:Orientation",
+    "size": "Composite:ImageSize",
+    "mimeType": "File:MIMEType",
+    "dateTime": ("Composite:GPSDateTime", "Composite:DateTimeOriginal"),
+}
+
+# Functions to process certain fields
+def parse_date(x):
+    # TODO: Is parsing any timezones other than 'Z' required?
+    for fmt in ('%Y:%m:%d %H:%M:%S', '%Y:%m:%d %H:%M:%SZ',
+                '%Y:%m:%d %H:%M:%S.%f', '%Y:%m:%d %H:%M:%S.%fZ'):
+        with contextlib.suppress(TypeError, ValueError):
+            return datetime.strptime(x, fmt)
+    return None
+
+def parse_focal_length(x):
+    """Use the 35mm equivalent if possible"""
+    if not isinstance(x, str):
+        return x
+    m = re.match("(.*) mm \(35 mm equivalent: (.*) mm\)", x)
+    return m.group(2) if m else x
+
+drop_unknown = lambda x: x if not x.lower().startswith("unknown") else None
+drop_zero = lambda x: x if x != 0 else None
+TAG_PROCESSORS = {
+    "Composite:Aperture": drop_zero,
+    "Composite:DateTimeOriginal": parse_date,
+    "Composite:FocalLength35efl": parse_focal_length,
+    "Composite:GPSDateTime": parse_date,
+    "Composite:GPSPosition": lambda x: list(map(float, x.split(", "))),
+    "Composite:ISO": drop_zero,
+    "Composite:ImageSize": lambda x: list(map(int, x.split("x"))),
+    "Composite:ShutterSpeed": drop_zero,
+    "EXIF:ExposureCompensation": drop_zero,
+    "EXIF:ExposureProgram": drop_unknown,
+    "EXIF:LightSource": drop_unknown,
+    "EXIF:MeteringMode": drop_unknown,
+    "EXIF:SubjectDistanceRange": drop_unknown,
+}
 
 # Format: ((max_size, square?), ..)
 # Note that these are generated in sequence by continually modifying the same
@@ -207,29 +256,28 @@ class Photo(object):
 
         info = ExifTool().process_files(img_path, tags=TAGS_TO_EXTRACT)[0]
 
-        exif = {}
-        for tag, value in info.items():
-            *tag_type, tag_name = tag.split(":", 1)
-            tag_type = tag_type[0] if tag_type else None
-
-            if tag_type == "EXIF" and tag_name.startswith("DateTime"):
-                try:
-                    value = datetime.strptime(value, '%Y:%m:%d %H:%M:%S')
-                except (TypeError, ValueError):
+        # Pull metadata into self._attributes
+        for attr, tags in TAGMAP.items():
+            if isinstance(tags, str):
+                tags = [tags]
+            for t in tags:
+                if t not in info:
                     continue
+                val = info[t]
+                # Run any processing on the value
+                if t in TAG_PROCESSORS:
+                    try:
+                        val = TAG_PROCESSORS[t](val)
+                    except (TypeError, ValueError):
+                        continue
+                if val is not None:
+                    self._attributes[attr] = val
+                break
 
-            exif[tag_name] = value
+        self._filetype = info["File:FileType"]
 
-        # Pull out exif data into self._attributes
-        for attr, *tags in EXIF_TAGMAP:
-            for tag in tags:
-                with contextlib.suppress(KeyError):
-                    self._attributes[attr] = exif[tag]
-                    break
-
-        self._filetype = exif["FileType"]
-        self._attributes["size"] = (exif["ImageWidth"],
-                                    exif["ImageHeight"])
+        if self._config.no_location:
+            self._attributes.pop("gps", None)
 
         # Taken sideways, invert the dimensions
         if "rotated 90" in self._attributes.get("orientation", "").lower():
@@ -240,8 +288,8 @@ class Photo(object):
 
         # Attempt to conserve as much memory as possible when dealing with
         # large files - read data for the hash and image directly from the
-        # file. The Image object will store it memory anyway, there's no reason
-        # to do it twice.
+        # file. The Image object will store it in memory anyway, there's no
+        # reason to do it twice.
         with open(path, 'rb') as fp:
             # Get a salty hash of the file
             file_hash = hashlib.sha1()
@@ -357,10 +405,7 @@ class Photo(object):
     def date(self):
         if not self.is_valid:
             return None
-        for x in ("dateTimeOriginal", "dateTime"):
-            with contextlib.suppress(KeyError):
-                return self._attributes[x]
-        return None
+        return self._attributes.get("dateTime", None)
 
     # Sort by date taken (old -> new), alphabetical
     @property

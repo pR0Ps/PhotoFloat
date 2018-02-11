@@ -14,11 +14,13 @@ def main():
     parser.add_argument("albums",
                         help="A directory where you store a hierarchy of album folders")
     parser.add_argument("-c", "--cache", nargs='?',
-                        help="where photofloat will generate thumbnails and other data (default: <ALBUM>/../cache)")
+                        help="Where photofloat will generate thumbnails and other data (default: <ALBUM>/../cache)")
     parser.add_argument("-s", "--salt", nargs='?', type=argparse.FileType('rb'),
                         help="A file containing data to salt the image filenames with"),
     parser.add_argument("--remove-stale", action="store_true",
                         help="Remove stale data/thumbnails from the cache (default: just list them)")
+    parser.add_argument("--no-location", action="store_true",
+                        help="Don't pull any location/GPS data out of photo metadata")
     config = parser.parse_args()
 
     if config.salt:
