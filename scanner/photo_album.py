@@ -46,7 +46,7 @@ TAGMAP = {
     "orientation": "Composite:Orientation",
     "size": "Composite:ImageSize",
     "mimeType": "File:MIMEType",
-    "dateTime": ("Composite:GPSDateTime", "Composite:DateTimeOriginal"),
+    "date": ("Composite:GPSDateTime", "Composite:DateTimeOriginal"),
 }
 
 # Functions to process certain fields
@@ -227,11 +227,11 @@ class Photo(object):
             return
 
         # Made from previous data - don't reprocess images
-        if attributes and attributes["dateTimeFile"] >= mtime:
+        if attributes and attributes["dateModified"] >= mtime:
             self._attributes = attributes
             return
 
-        self._attributes = {"dateTimeFile": mtime}
+        self._attributes = {"dateModified": mtime}
 
         # Process exifdata into self._attributes
         try:
@@ -329,7 +329,7 @@ class Photo(object):
             data = (name, thumb, size, square)
 
             if (os.path.exists(thumb) and
-                    file_mtime(thumb) >= self._attributes["dateTimeFile"]):
+                    file_mtime(thumb) >= self._attributes["dateModified"]):
                 message("exists", self._convert_msg(name, size, square))
                 continue
 
@@ -405,7 +405,7 @@ class Photo(object):
     def date(self):
         if not self.is_valid:
             return None
-        return self._attributes.get("dateTime", None)
+        return self._attributes.get("date", None)
 
     # Sort by date taken (old -> new), alphabetical
     @property
@@ -429,12 +429,11 @@ class Photo(object):
 
     @staticmethod
     def from_dict(config, path, dictionary):
-        dictionary.pop("date")
         dictionary.pop("name")
-        for key, value in dictionary.items():
-            if key.startswith("dateTime"):
+        for k in ("date", "dateModified"):
+            if k in dictionary:
                 with contextlib.suppress(TypeError, ValueError):
-                    dictionary[key] = datetime.strptime(value,
+                    dictionary[k] = datetime.strptime(dictionary[k],
                                                         "%a %b %d %H:%M:%S %Y")
         return Photo(config, path, dictionary)
 
