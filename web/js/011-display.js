@@ -416,23 +416,36 @@ $(document).ready(function() {
     showAlbum(previousAlbum !== currentAlbum);
   }
 
-  /* Event listeners */
-
-  $(window).on("resize", scaleImage);
-  $(window).on("hashchange", function() {
+  function loadPage(event) {
+    $(window).trigger("pageload");
     $("#loading").show();
     $("link[rel=image_src]").remove();
     photoFloat.parseHash(location.hash, hashParsed, die);
+  }
+
+  /* Event listeners */
+  $(window).on("popstate", loadPage);
+  $(window).on("resize", scaleImage);
+  $(document).on("click", "a[href][target!='_blank']", function(e) {
+    target = e.currentTarget;
+    if (location.host == target.host) {
+      e.preventDefault();
+      if (location.href !== target.href) {
+        history.pushState(null, null, target.href);
+        loadPage(null);
+      }
+    }
   });
-  $(window).trigger("hashchange");
   $(document).keydown(function(e) {
-    if (currentPhoto === null) return true;
-    if (e.keyCode === 39) {
-      window.location.href = $("#next").attr("href");
-      return false;
-    } else if (e.keyCode === 37) {
-      window.location.href = $("#back").attr("href");
-      return false;
+    if (currentPhoto !== null) {
+      key = e.key;
+      if (key == "ArrowLeft" || key == "Left") {
+        $("#back").click();
+        return false;
+      } else if (key == "ArrowRight" || key == "Right") {
+        $("#next").click();
+        return false;
+      }
     }
     return true;
   });
@@ -517,9 +530,14 @@ $(document).ready(function() {
       password.val("");
       if (success) {
         password.css("background-color", "rgb(200, 200, 200)");
-        $(window).trigger("hashchange");
-      } else password.css("background-color", "rgb(255, 64, 64)");
+        setTimeout(loadPage);
+      } else {
+        password.css("background-color", "rgb(255, 64, 64)");
+      }
     });
     return false;
   });
+
+  // Initial page load
+  setTimeout(loadPage);
 });
