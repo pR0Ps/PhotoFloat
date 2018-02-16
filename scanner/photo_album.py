@@ -84,6 +84,7 @@ TAG_PROCESSORS = {
     "Composite:GPSPosition": lambda x: list(map(float, x.split(", "))),
     "Composite:ISO": drop_zero,
     "Composite:ImageSize": lambda x: list(map(int, x.split("x"))),
+    "Composite:Orientation": drop_unknown,
     "Composite:ShutterSpeed": drop_zero,
     "EXIF:ExposureCompensation": drop_zero,
     "EXIF:ExposureProgram": drop_unknown,
