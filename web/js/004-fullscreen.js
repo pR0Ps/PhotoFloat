@@ -98,7 +98,7 @@
 
       fs = $("<div>", {
         css: {
-          "overflow-y": "auto",
+          overflow: "hidden",
           background: options.background,
           width: "100%",
           height: "100%"

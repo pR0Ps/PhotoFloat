@@ -221,13 +221,18 @@ $(document).ready(function() {
     if (currentPhoto == null) {
       return;
     }
+
     var image = $("#photo");
-    var container = $("#photo-view");
+    var container;
+    if (image.hasClass("fullScreen")) {
+      container = $(document);
+    } else {
+      container = $("#photo-view");
+    }
+
     var ir = currentPhoto.size[0] / currentPhoto.size[1];
     var cw = container.width();
     var ch = container.height();
-
-    image.css("max-width", cw).css("max-height", ch);
     if (ir > cw / ch) {
       image.css("width", "100%").css("height", "auto");
     } else {
