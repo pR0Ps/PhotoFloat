@@ -54,7 +54,7 @@ a:hover {
   background-repeat: no-repeat;
   background-position: top;
   padding-top: 150px;
-  background-image: url(loading.gif); /* Relative to stylesheet */
+  background-image: url(/assets/loading.gif);
 }
 
 #next,

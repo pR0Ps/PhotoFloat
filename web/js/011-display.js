@@ -26,7 +26,7 @@ $(document).ready(function() {
   var originalTitle = document.title;
   var photoFloat = new PhotoFloat();
   var maxSize = 1024;
-  var placeholderImage = "assets/loading.gif"; // Relative to current path
+  var placeholderImage = "/assets/loading.gif";
 
   /* Displays */
 
@@ -48,7 +48,7 @@ $(document).ready(function() {
       if (i) last += "/" + components[i];
       if (i < components.length - 1 || currentPhoto !== null)
         title +=
-          '<a href="#!/' +
+          '<a href="/view/' +
           (i ? photoFloat.cachePath(last.substring(1)) : "") +
           '">';
       title += components[i];
@@ -116,7 +116,7 @@ $(document).ready(function() {
       photos = [];
       for (var i = 0; i < currentAlbum.photos.length; ++i) {
         link = $(
-          '<a href="#!/' +
+          '<a href="/view/' +
             photoFloat.photoHash(currentAlbum, currentAlbum.photos[i]) +
             '"></a>'
         );
@@ -164,7 +164,7 @@ $(document).ready(function() {
       subalbums = [];
       for (var i = 0; i < currentAlbum.albums.length; ++i) {
         link = $(
-          '<a href="#!/' +
+          '<a href="/view/' +
             photoFloat.albumHash(currentAlbum.albums[i]) +
             '"></a>'
         );
@@ -264,12 +264,12 @@ $(document).ready(function() {
       photoFloat.photoPath(currentAlbum, previousPhoto, maxSize, false)
     );
 
-    nextLink = "#!/" + photoFloat.photoHash(currentAlbum, nextPhoto);
+    nextLink = "/view/" + photoFloat.photoHash(currentAlbum, nextPhoto);
     $("#next-photo").attr("href", nextLink);
     $("#next").attr("href", nextLink);
     $("#back").attr(
       "href",
-      "#!/" + photoFloat.photoHash(currentAlbum, previousPhoto)
+      "/view/" + photoFloat.photoHash(currentAlbum, previousPhoto)
     );
     $("#original-link")
       .attr("target", "_blank")
@@ -402,7 +402,7 @@ $(document).ready(function() {
 
   /* Entry point for most events */
 
-  function hashParsed(album, photo, photoIndex) {
+  function locationParsed(album, photo, photoIndex) {
     undie();
     $("#loading").hide();
     if (album === currentAlbum && photo === currentPhoto) return;
@@ -420,7 +420,7 @@ $(document).ready(function() {
     $(window).trigger("pageload");
     $("#loading").show();
     $("link[rel=image_src]").remove();
-    photoFloat.parseHash(location.hash, hashParsed, die);
+    photoFloat.parseLocation(location, locationParsed, die);
   }
 
   /* Event listeners */
