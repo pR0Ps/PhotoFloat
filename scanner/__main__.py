@@ -3,10 +3,13 @@
 import argparse
 import sys
 import os
+import logging
 
 from scanner.tree_walker import TreeWalker
 from scanner.cache_path import message
 
+logging.basicConfig(format="%(asctime)-15s %(message)s")
+logger = logging.getLogger(__name__)
 
 def main():
 
@@ -31,7 +34,9 @@ def main():
 
     try:
         os.umask(0x022)
+        logger.info("Starting walk")
         TreeWalker(config)
+        logger.info("Finished walk")
     except KeyboardInterrupt:
         message("keyboard", "CTRL+C pressed, quitting.")
         sys.exit(-97)

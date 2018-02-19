@@ -3,104 +3,112 @@
 from datetime import datetime
 import os
 import sys
+import logging
 
 from scanner.exiftool import ExifTool
 from scanner.cache_path import (next_level, back_level, set_cache_path_base,
                                 json_cache, message, file_mtime)
 from scanner.photo_album import Photo, Album, PhotoAlbumEncoder
 
+logger = logging.getLogger(__name__)
+
+class AlbumDirectory:
+    def __init__(self, path, contents):
+        self.path = path
+        self.contents = contents
+
+    def __repr__(self):
+        return "%s(%s, %s)" % (self.__class__, self.path, self.contents)
 
 class TreeWalker:
     def __init__(self, config):
         self._config = config
 
-        message("info", "starting directory walk")
+        logger.info("Starting directory walk")
         if config.salt:
-            message("info", "using a salt to hash files")
+            logger.info("Using provided salt %s to hash files" % (config.salt))
 
         set_cache_path_base(config.albums)
         os.makedirs(config.cache, exist_ok=True)
 
         self.all_albums = []
         self.all_photos = []
+        self.albums_to_process = []
 
+        self.generate_album_directory_list()
         # Instantiate the ExifTool singleton so all exif operations can reuse
         # the suprocess in batch mode.
         with ExifTool():
-            self.walk(config.albums)
+            self.generate_albums()
 
         self.remove_stale()
-        message("complete", "")
+        logger.info("Completed walk")
 
-    def walk(self, path):
-        next_level()
-        if not os.access(path, os.R_OK | os.X_OK):
-            message("access denied", os.path.basename(path))
-            back_level()
-            return None
-
-        message("walking", os.path.basename(path))
-        cache = os.path.join(self._config.cache, json_cache(path))
-        cached = False
-        cached_album = None
-        if os.path.exists(cache):
-            try:
-                cached_album = Album.from_cache(self._config, cache)
-            except (OSError, TypeError, ValueError) as e:
-                message("corrupt cache", os.path.basename(path))
-                cached_album = None
-            else:
-                # Check if json or images are out of date
-                if (file_mtime(path) <= file_mtime(cache) and
-                        cached_album.photos_cached):
-                    message("full cache", os.path.basename(path))
-                    cached = True
-                    album = cached_album
-                    for photo in album.photos:
-                        self.all_photos.append(photo)
-                else:
-                    message("partial cache", os.path.basename(path))
-        if not cached:
-            album = Album(self._config, path)
-
-        for entry in os.listdir(path):
-            if entry[0] == '.':
+    def generate_album_directory_list(self):
+        for root, _, files in os.walk(self._config.albums):
+            if not os.access(root, os.R_OK | os.X_OK):
+                print("Access denied", os.path.basename(root))
                 continue
 
-            entry = os.path.join(path, entry)
+            self.albums_to_process.append(AlbumDirectory(root, files))
+        logger.info("Finished generating album listing")
 
-            if os.path.isdir(entry):
-                next_walked_album = self.walk(entry)
-                if next_walked_album is not None:
-                    album.add_album(next_walked_album)
-            elif not cached and os.path.isfile(entry):
-                next_level()
-                cache_hit = False
-                if cached_album:
-                    cached_photo = cached_album.photo_from_path(entry)
-                    if (cached_photo and
-                            file_mtime(entry) <= cached_photo.attributes["dateModified"] and
-                            cached_photo.thumbs_cached):
-                        message("cache hit", os.path.basename(entry))
-                        cache_hit = True
-                        photo = cached_photo
-                if not cache_hit:
-                    message("metainfo", os.path.basename(entry))
-                    photo = Photo(self._config, entry)
-                if photo.is_valid:
-                    self.all_photos.append(photo)
-                    album.add_photo(photo)
+    def _get_album_from_cache(self, ad):
+        cache_path = os.path.join(self._config.cache, json_cache(ad.path))
+        cached_album = None
+
+        if os.path.exists(cache_path):
+            try:
+                cached_album = Album.from_cache(self._config, cache_path)
+            except (OSError, TypeError, ValueError) as e:
+                logger.warning("Corrupt cache - %s" % (os.path.basename(ad.path)))
+                return (None, False)
+            else:
+                if (file_mtime(ad.path) <= file_mtime(cache_path) and
+                        cached_album.photos_cached):
+                    logger.info("Full cache - %s" % (ad.path))
+                    for photo in cached_album.photos:
+                        self.all_photos.append(photo)
+                    return (cached_album, True)
                 else:
-                    message("unreadable", os.path.basename(entry))
-                back_level()
-        if not album.empty:
-            message("caching", os.path.basename(path))
+                    logger.info("Partial cache - %s" % (ad.path))
+                    return (cached_album, False)
+        else:
+            return (None, False)
+
+    def _get_cached_item(self, item_path, album):
+        cached_photo = album.photo_from_path(item_path)
+        if (cached_photo and
+            file_mtime(item_path) <= cached_photo.attributes["dateModified"] and
+            cached_photo.thumbs_cached):
+            logger.info("Cache hit - %s" % (item_path))
+            return cached_photo
+        return None
+
+    def generate_albums(self):
+        for ad in self.albums_to_process:
+            album, is_album_fully_cached = self._get_album_from_cache(ad)
+            if not is_album_fully_cached:
+                album = Album(self._config, ad.path)
+            for file in ad.contents:
+                photo = None
+                if file[0] == ".":
+                    continue
+                file_path = os.path.join(ad.path, file)
+                logger.debug("Album is cached %s" % (is_cached))
+                if not is_album_fully_cached:
+                    photo = self._get_cached_item(file_path, album)
+                    if not photo:
+                        logger.info("Metainfo - %s" % (file_path))
+                        photo = Photo(self._config, file_path)
+                    if photo.is_valid:
+                        self.all_photos.append(photo)
+                        album.add_photo(photo)
+                    else:
+                        logger.warning("Unreadable photo %s" % (file_path))
+            logger.info("Caching - %s" % (ad.path))
             album.cache()
             self.all_albums.append(album)
-        else:
-            message("empty", os.path.basename(path))
-        back_level()
-        return album
 
     def remove_stale(self):
         all_cache_entries = set()
