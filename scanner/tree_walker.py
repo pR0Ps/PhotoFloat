@@ -95,7 +95,7 @@ class TreeWalker:
                 if file[0] == ".":
                     continue
                 file_path = os.path.join(ad.path, file)
-                logger.debug("Album is cached %s" % (is_cached))
+                logger.debug("Album is cached %s" % (is_album_fully_cached))
                 if not is_album_fully_cached:
                     photo = self._get_cached_item(file_path, album)
                     if not photo:

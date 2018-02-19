@@ -8,7 +8,7 @@ import logging
 from scanner.tree_walker import TreeWalker
 from scanner.cache_path import message
 
-logging.basicConfig(format="%(asctime)-15s %(message)s")
+logging.basicConfig(format="%(asctime)-15s %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def main():
