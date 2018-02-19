@@ -106,9 +106,12 @@ class TreeWalker:
                         album.add_photo(photo)
                     else:
                         logger.warning("Unreadable photo %s" % (file_path))
-            logger.info("Caching - %s" % (ad.path))
-            album.cache()
-            self.all_albums.append(album)
+            if not album.empty:
+                logger.info("Caching - %s" % (ad.path))
+                album.cache()
+                self.all_albums.append(album)
+            else:
+                logger.info("Empty - %s" % (ad.path))
 
     def remove_stale(self):
         all_cache_entries = set()
