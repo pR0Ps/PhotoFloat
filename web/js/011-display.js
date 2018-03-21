@@ -114,26 +114,26 @@ $(document).ready(function() {
 
     if (populate) {
       photos = [];
-      for (var i = 0; i < currentAlbum.photos.length; ++i) {
+      for (var i = 0; i < currentAlbum.media.length; ++i) {
         link = $(
           '<a href="/view/' +
-            photoFloat.photoHash(currentAlbum, currentAlbum.photos[i]) +
+            photoFloat.photoHash(currentAlbum, currentAlbum.media[i]) +
             '"></a>'
         );
 
         // Create the image with the placeholder and swap to the real one once it loads
         image = $(
           '<img title="' +
-            photoFloat.trimExtension(currentAlbum.photos[i].name) +
+            photoFloat.trimExtension(currentAlbum.media[i].name) +
             '"' +
             'alt="' +
-            photoFloat.trimExtension(currentAlbum.photos[i].name) +
+            photoFloat.trimExtension(currentAlbum.media[i].name) +
             '"' +
             'src="' +
             placeholderImage +
             '" height="150" width="150" />'
         );
-        image.get(0).photo = currentAlbum.photos[i];
+        image.get(0).photo = currentAlbum.media[i];
         link.append(image);
         photos.push(link);
         (function(theLink, theImage, theAlbum) {
@@ -144,14 +144,14 @@ $(document).ready(function() {
           img.onerror = function() {
             photos.splice(photos.indexOf(theLink), 1);
             theLink.remove();
-            theAlbum.photos.splice(
-              theAlbum.photos.indexOf(theImage.get(0).photo),
+            theAlbum.media.splice(
+              theAlbum.media.indexOf(theImage.get(0).photo),
               1
             );
           };
           img.src = photoFloat.photoPath(
             theAlbum,
-            theAlbum.photos[i],
+            theAlbum.media[i],
             150,
             true
           );
@@ -184,7 +184,7 @@ $(document).ready(function() {
               };
               img.onerror = function() {
                 // Remove failed image from album data
-                album.photos.splice(album.photos.indexOf(photo), 1);
+                album.media.splice(album.media.indexOf(photo), 1);
                 //TODO: Try next image in album?
               };
               img.src = photoFloat.photoPath(album, photo, 150, true);
@@ -248,14 +248,14 @@ $(document).ready(function() {
     $("head").append('<link rel="image_src" href="' + photoSrc + '" />');
 
     previousPhoto =
-      currentAlbum.photos[
+      currentAlbum.media[
         currentPhotoIndex - 1 < 0
-          ? currentAlbum.photos.length - 1
+          ? currentAlbum.media.length - 1
           : currentPhotoIndex - 1
       ];
     nextPhoto =
-      currentAlbum.photos[
-        currentPhotoIndex + 1 >= currentAlbum.photos.length
+      currentAlbum.media[
+        currentPhotoIndex + 1 >= currentAlbum.media.length
           ? 0
           : currentPhotoIndex + 1
       ];
