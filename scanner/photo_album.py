@@ -364,10 +364,15 @@ class Photo(object):
                 thumb_dir = os.path.dirname(path)
 
                 if square:
-                    crop = min(*img.size)
+                    crop = min(img.size)
                     img.crop(width=crop, height=crop, gravity='center')
+                    img.resize(size, size)
+                else:
+                    # Work around a bug in Wand's image transformation by
+                    # manually calculating the scaled dimensions and resizing
+                    ratio = size/max(img.size)
+                    img.resize(*[round(x*ratio) for x in img.size])
 
-                img.transform(resize="{0}x{0}>".format(size))
                 img.compression_quality = quality
 
                 try:
