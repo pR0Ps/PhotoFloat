@@ -354,6 +354,14 @@ class Photo(object):
         # incorrectly identified as TIFF files (and error out during
         # processing) unless the format is specified.
         with Image(file=img_fp, format=self._filetype) as img:
+
+            # If there are multiple frames only use the first one (this
+            # prevents GIFs and ICOs from exploding their frames into
+            # individual images)
+            if img.sequence:
+                for _ in range(1, len(img.sequence)):
+                    img.sequence.pop()
+
             # Rotation and conversion to jpeg
             img.auto_orient()
             img.format = 'jpeg'
