@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
+import calendar
 from datetime import datetime
 import json
 import os.path
 
 import scanner.globals
-
-DATE_FORMAT = "%a %b %d %H:%M:%S %Y"
 
 
 def roundto(num, nearest):
@@ -41,7 +40,6 @@ def json_cache(path):
     return "{}.json".format(cache_base(path))
 
 def file_mtime(path):
-    #TODO: timezone?
     return datetime.fromtimestamp(int(os.path.getmtime(path)))
 
 
@@ -58,7 +56,7 @@ def object_hook(obj):
     """Make JSON parse dates properly"""
     for k in ("date", "dateModified"):
         if k in obj and obj[k]:
-            obj[k] = datetime.strptime(obj[k], DATE_FORMAT)
+            obj[k] = datetime.utcfromtimestamp(obj[k])
     return obj
 
 class PhotoAlbumEncoder(json.JSONEncoder):
@@ -67,7 +65,7 @@ class PhotoAlbumEncoder(json.JSONEncoder):
         from scanner.album import Album
 
         if isinstance(obj, datetime):
-            return obj.strftime(DATE_FORMAT)
+            return calendar.timegm(obj.utctimetuple())
         if isinstance(obj, Album) or isinstance(obj, MediaObject):
             return obj.cache_data()
         return json.JSONEncoder.default(self, obj)

@@ -28,6 +28,23 @@ $(document).ready(function() {
   var maxSize = 1024;
   var placeholderImage = "/assets/loading.gif";
 
+  /* Utils */
+  function formatDate(timestamp) {
+    //Requires milliseconds instead of seconds
+    var date = new Date(timestamp * 1000);
+
+    // Input timestamps have unknown/mixed timezones
+    // parse using browsers timezone, convert back to "UTC", strip the UTC text off
+    return date.toUTCString().replace(" GMT", "");
+  }
+
+  function zeroPad(num, len, char) {
+    //Pad a number to a certain length with leading 0s
+    // zeroPad(4, 5) -> "00004"
+    var pad = new Array(1 + len).join("0");
+    return (pad + num).slice(-pad.length);
+  }
+
   /* Displays */
 
   function setTitle() {
@@ -170,7 +187,7 @@ $(document).ready(function() {
         );
         image = $("<div>" + currentAlbum.albums[i].path + "</div>")
           .addClass("album-button")
-          .attr("title", currentAlbum.albums[i].date);
+          .attr("title", formatDate(currentAlbum.albums[i].date));
         link.append(image);
         subalbums.push(link);
         (function(theContainer, theAlbum, theImage, theLink) {
@@ -242,7 +259,7 @@ $(document).ready(function() {
     image = $("#photo");
     image
       .attr("alt", currentPhoto.name)
-      .attr("title", currentPhoto.date)
+      .attr("title", formatDate(currentPhoto.date))
       .attr("src", photoFloat.photoPath(currentAlbum, currentPhoto, 150, true));
     image.attr("src", photoSrc).on("load", scaleImage);
     $("head").append('<link rel="image_src" href="' + photoSrc + '" />');
@@ -285,7 +302,20 @@ $(document).ready(function() {
     if (typeof currentPhoto.lens !== "undefined")
       text += "<tr><td>Camera Lens</td><td>" + currentPhoto.lens + "</td></tr>";
     if (typeof currentPhoto.date !== "undefined" && currentPhoto.date != null) {
-      text += "<tr><td>Time Taken</td><td>" + currentPhoto.date + "</td></tr>";
+      text += "<tr><td>Time Taken</td><td>" + formatDate(currentPhoto.date);
+      if (typeof currentPhoto.timezone !== "undefined") {
+        var tz = currentPhoto.timezone;
+        if (tz == 0) {
+          text += "Z";
+        } else {
+          var sign = tz < 0 ? "-" : "+";
+          tz = Math.abs(tz);
+          var hours = Math.floor(tz);
+          var minutes = Math.floor((tz - hours) * 60);
+          text += sign + zeroPad(hours, 2) + ":" + zeroPad(minutes, 2);
+        }
+      }
+      text += "</td></tr>";
     }
     if (typeof currentPhoto.size !== "undefined")
       text +=
