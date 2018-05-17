@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import contextlib
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import logging
@@ -12,7 +12,7 @@ from wand.image import Image
 from wand.exceptions import WandException
 
 import scanner.globals
-from scanner.common import file_mtime
+from scanner.common import file_mtime, roundto
 from scanner.exiftool import ExifTool
 
 __log__ = logging.getLogger(__name__)
@@ -49,19 +49,58 @@ TAGMAP = {
     "orientation": "Composite:Orientation",
     "size": "Composite:ImageSize",
     "mimeType": "File:MIMEType",
-    "date": ("Composite:GPSDateTime", "Composite:DateTimeOriginal"),
 
     "fileType": "File:FileType",
+
+    # Internal use only (non-serialized)
+    "_dateutc": "Composite:GPSDateTime",
+    "_date": "Composite:DateTimeOriginal"
 }
 
 # Functions to process certain fields
-def parse_date(x):
-    # TODO: Is parsing any timezones other than 'Z' required?
-    for fmt in ('%Y:%m:%d %H:%M:%S', '%Y:%m:%d %H:%M:%SZ',
-                '%Y:%m:%d %H:%M:%S.%f', '%Y:%m:%d %H:%M:%S.%fZ'):
+TIMEZONE_RE = re.compile("^(.*)([-+])(\d\d):(\d\d)$")
+def parse_date(value):
+    """Parses a string value to a datetime from a limited number of formats
+
+    - Only needs to parse the output that `exiftool` produces
+    - Accepts "Z" or "[+/-]xx:xx" for timezones
+    - Returns a naive or tz-aware datetime depending on the input
+
+    Note that we don't use the -dateFormat option when calling `exiftool` since
+    it will add the local timezone to every date it doesn't know the timezone
+    for. The default (unspecified) format will output the timezime in one of
+    the two formats accepted by this function *only* if it actually knows the
+    timezone.
+    """
+    # UTC datetime
+    for fmt in ('%Y:%m:%d %H:%M:%SZ', '%Y:%m:%d %H:%M:%S.%fZ'):
         with contextlib.suppress(TypeError, ValueError):
-            return datetime.strptime(x, fmt)
-    return None
+            return datetime.strptime(value, fmt).replace(tzinfo=timezone.utc)
+
+    # Pop a timezone off the input value and create an offset
+    match = TIMEZONE_RE.fullmatch(value)
+    if match:
+        value, sign, hours, mins = match.groups()
+        offset = timedelta(hours=int(hours), minutes=int(mins))
+        if sign == "-":
+            offset = -offset
+    else:
+        offset = None
+
+    for fmt in ('%Y:%m:%d %H:%M:%S', '%Y:%m:%d %H:%M:%S.%f'):
+        with contextlib.suppress(TypeError, ValueError):
+            dt = datetime.strptime(value, fmt)
+            break
+    else:
+        # Failed to parse a datetime
+        return None
+
+    # Naive datetime
+    if offset is None:
+        return dt
+
+    # Datetime with tz offset
+    return dt.replace(tzinfo=timezone(offset))
 
 FOCAL_LENGTH_RE = re.compile(".* mm \(35 mm equivalent: (.*) mm\)")
 def parse_focal_length(x):
@@ -171,7 +210,7 @@ class MediaObject(object):
         return {
             "name": self.name,
             "date": self.date,
-            **self._attributes
+            **{k:v for k, v in self._attributes.items() if not k.startswith("_")}
         }
 
     @staticmethod
@@ -330,9 +369,33 @@ def _extract_file_metadata(path):
                 data[attr] = val
             break
 
+    # Process metadata
     if scanner.globals.CONFIG.no_location:
         data.pop("gps", None)
 
+    # Calculate the effective date and timezone of the object if possible
+    # from the internal '_date' and '_dateutc' attributes.
+    # Note that we don't use EXIF:TimeZoneOffset not only because it's
+    # non-standard, but more importantly, it only stores hours as integers
+    # (no half hour time zones).
+    date = data.get("_date")
+    date_utc = data.get("_dateutc")
+
+    if date and date.tzinfo is not None:
+        # Get the timezone offset and remove it from the date
+        offset = date.utcoffset()
+        date = date.replace(tzinfo=None)
+    elif date and date_utc:
+        # Calculate the timezone offset from the UTC date
+        if date_utc.tzinfo is not None:
+            date_utc = date_utc.astimezone(timezone.utc).replace(tzinfo=None)
+        offset = date - date_utc
+    else:
+        offset = None
+
+    data["date"] = date
+    if offset is not None:
+        data["timezone"] = roundto(offset.total_seconds()/3600, nearest=0.25)
     return data
 
 def _thumb_msg(name, size, square):

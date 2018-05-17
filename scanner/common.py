@@ -9,6 +9,10 @@ import scanner.globals
 DATE_FORMAT = "%a %b %d %H:%M:%S %Y"
 
 
+def roundto(num, nearest):
+    """Rounds a number to the nearest interval"""
+    return nearest * round(float(num)/nearest)
+
 def trim_base_custom(path, base):
     if path.startswith(base):
         path = path[len(base):]
