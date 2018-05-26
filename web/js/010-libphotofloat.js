@@ -25,7 +25,7 @@
     ajaxOptions = {
       type: "GET",
       dataType: "json",
-      url: "cache/" + cacheKey + ".json",
+      url: "/cache/" + cacheKey + ".json",
       success: function(album) {
         var i;
         for (var i = 0; i < album.albums.length; ++i)
@@ -61,18 +61,21 @@
       nextAlbum(subalbum);
     else this.album(subalbum, nextAlbum, error);
   };
-  PhotoFloat.prototype.parseHash = function(hash, callback, error) {
+  PhotoFloat.prototype.parseLocation = function(location, callback, error) {
     var index, album, photo;
-    hash = PhotoFloat.cleanHash(hash);
-    index = hash.lastIndexOf("/");
-    if (!hash.length) {
-      album = PhotoFloat.cachePath("root");
+    path = location.pathname;
+
+    // trim off "/view" and leading/trailing slashes
+    path = path.replace(/^\/view\/*/, "").replace(/\/+$/, "");
+    index = path.lastIndexOf("/");
+    if (!path.length) {
+      album = "root";
       photo = null;
-    } else if (index !== -1 && index !== hash.length - 1) {
-      photo = hash.substring(index + 1);
-      album = hash.substring(0, index);
+    } else if (index !== -1 && index !== path.length - 1) {
+      photo = path.substring(index + 1);
+      album = path.substring(0, index);
     } else {
-      album = hash;
+      album = path;
       photo = null;
     }
     this.album(
@@ -112,8 +115,8 @@
 
   /* static functions */
   PhotoFloat.cachePath = function(path) {
-    if (path === "") return "root";
     if (path.charAt(0) === "/") path = path.substring(1);
+    if (!path.length) return "root";
     path = path
       .replace(/ /g, "_")
       .replace(/\//g, "-")
@@ -145,7 +148,7 @@
     if (square) suffix = size.toString() + "s";
     else suffix = size.toString();
     return (
-      "cache/thumbs/" +
+      "/cache/thumbs/" +
       photo.hash.slice(0, 2) +
       "/" +
       photo.hash.slice(2) +
@@ -155,24 +158,12 @@
     );
   };
   PhotoFloat.originalPhotoPath = function(album, photo) {
-    return "albums/" + album.path + "/" + photo.name;
+    return "/albums/" + album.path + "/" + photo.name;
   };
   PhotoFloat.trimExtension = function(name) {
     var index = name.lastIndexOf(".");
     if (index !== -1) return name.substring(0, index);
     return name;
-  };
-  PhotoFloat.cleanHash = function(hash) {
-    while (hash.length) {
-      if (hash.charAt(0) === "#") hash = hash.substring(1);
-      else if (hash.charAt(0) === "!") hash = hash.substring(1);
-      else if (hash.charAt(0) === "/") hash = hash.substring(1);
-      else if (hash.substring(0, 3) === "%21") hash = hash.substring(3);
-      else if (hash.charAt(hash.length - 1) === "/")
-        hash = hash.substring(0, hash.length - 1);
-      else break;
-    }
-    return hash;
   };
 
   /* make static methods callable as member functions */
@@ -182,7 +173,6 @@
   PhotoFloat.prototype.photoPath = PhotoFloat.photoPath;
   PhotoFloat.prototype.originalPhotoPath = PhotoFloat.originalPhotoPath;
   PhotoFloat.prototype.trimExtension = PhotoFloat.trimExtension;
-  PhotoFloat.prototype.cleanHash = PhotoFloat.cleanHash;
 
   /* expose class globally */
   window.PhotoFloat = PhotoFloat;

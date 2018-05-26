@@ -10,11 +10,11 @@ if (analyticsId) {
     dataType: "script",
     cache: true
   });
-  $(window).on("hashchange", function() {
+  $(window).on("pageload", function() {
     gtag("config", analyticsId, {
       page_title: document.title,
       page_location: location.toString(),
-      page_path: location.pathname + location.hash
+      page_path: location.pathname
     });
   });
 }
