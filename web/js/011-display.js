@@ -539,5 +539,10 @@ $(document).ready(function() {
   });
 
   // Initial page load
-  setTimeout(loadPage);
+  if (location.pathname == "/") {
+    // Causes the page to redirect and reload
+    location.href += "view";
+  } else {
+    setTimeout(loadPage);
+  }
 });
