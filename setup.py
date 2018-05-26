@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name="photofloat",
-      version="0.0.1",
+      version="0.0.2",
       description="A Web 2.0 Photo Gallery Done Right via Static JSON & Dynamic Javascript",
       url="https://github.com/pR0Ps/PhotoFloat",
       license="GPLv2",
