@@ -80,8 +80,10 @@ def main():
                         help="Don't pull any location/GPS data out of photo metadata")
     config = parser.parse_args()
 
-    if config.salt:
-        config.salt = config.salt.read()
+    # Store the salt, not the filename in config.salt
+    saltfile = config.salt or None
+    if saltfile:
+        config.salt = saltfile.read()
 
     if not config.cache:
         config.cache = os.path.join(config.albums, os.path.pardir, "cache")
@@ -91,7 +93,7 @@ def main():
     scanner.globals.depth = 0
     try:
         if config.salt:
-            __log__.info("Will use a salt from file '%s' to hash files", config.salt)
+            __log__.info("Will use a salt from file '%s' to hash files", saltfile.name)
 
         os.makedirs(config.cache, exist_ok=True)
 
