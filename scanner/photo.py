@@ -224,7 +224,7 @@ class MediaObject(object):
             return None
 
         fhash = None
-        if not attributes or attributes["dateModified"] >= mtime:
+        if not attributes or attributes["dateModified"] < mtime:
             # Test for change to actual data before rescanning
             fhash = _get_file_hash(path)
             if not attributes or fhash != attributes["hash"]:
