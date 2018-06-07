@@ -137,6 +137,7 @@ TAG_PROCESSORS = {
     "Composite:ShutterSpeed": drop_zero,
     "EXIF:ExposureCompensation": drop_zero,
     "EXIF:ExposureProgram": drop_unknown,
+    "EXIF:Flash": drop_unknown,
     "EXIF:LightSource": drop_unknown,
     "EXIF:MeteringMode": drop_unknown,
     "EXIF:SubjectDistanceRange": drop_unknown,
