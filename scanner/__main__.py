@@ -78,6 +78,8 @@ def main():
                         help="Remove stale data/thumbnails from the cache (default: just list them)")
     parser.add_argument("--no-location", action="store_true",
                         help="Don't pull any location/GPS data out of photo metadata")
+    parser.add_argument("--rescan-ignored", action="store_true",
+                        help="Force a re-scan of files that were previously ignored")
     config = parser.parse_args()
 
     # Store the salt, not the filename in config.salt

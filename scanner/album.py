@@ -37,6 +37,7 @@ class Album(object):
     def __init__(self, path):
         self._media = []
         self._albums = []
+        self._ignored = set()
         self._path = trim_base(path)
         self._name = os.path.basename(self._path)
         self._cache_path = os.path.join(scanner.globals.CONFIG.cache,
@@ -65,13 +66,26 @@ class Album(object):
 
             if files:
                 # Get cached data
-                media_cache = self._load_media()
+                media_cache, self._ignored = self._load_media()
+
+                if scanner.globals.CONFIG.rescan_ignored:
+                    self._ignored = set()
 
                 # Process files, generate thumbnails
                 __log__.info("[scanning] Scanning %d files", len(files))
                 for f in files:
-                    cached = media_cache.get(f.name, None)
-                    self.add_media(MediaObject.from_path(f.path, attributes=cached))
+                    if f.name in self._ignored:
+                        __log__.warning("[ignored] File '%s' was previously unreadable", f.name)
+                        continue
+
+                    media_obj = MediaObject.from_path(
+                        f.path, attributes=media_cache.get(f.name, None)
+                    )
+                    if media_obj:
+                        self.add_media(media_obj)
+                    else:
+                        __log__.warning("[ignored] %s", f.name)
+                        self._ignored.add(f.name)
 
             # Recurse into subfolders
             for d in dirs:
@@ -161,21 +175,28 @@ class Album(object):
                 "path": trim_base_custom(x.path, self.path),
                 "date": x.date
             } for x in self._albums if x],
-            "media": self._media
+            "media": self._media,
+            "ignored": sorted(self._ignored)
         }
 
     def _load_media(self):
-        """Load media data from the cache"""
+        """Load media data from the cache
+
+        Returns a tuple of ({filename: data}, {ignored filenames})
+        """
         try:
             data = load_album_cache(self)
             __log__.debug("Using cached data")
-            return {x["name"]: x for x in data["media"]}
+            return (
+                {x["name"]: x for x in data["media"]},
+                set(data.get("ignored", []))
+            )
         except (FileNotFoundError) as e:
             __log__.debug("No cache exists")
         except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
             # Catch issues with invalid dates parsed in the loading process
             __log__.warning("[error] Corrupt cache: %r", e)
-        return {}
+        return ({}, set())
 
     def __repr__(self):
         return "<{} name={}, path={}>".format(self.__class__.__name__, self.name or "<root>", self.path or "<root>")
