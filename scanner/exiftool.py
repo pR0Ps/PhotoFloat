@@ -117,7 +117,7 @@ class ExifTool(object, metaclass=Singleton):
         """Start an ``exiftool`` process in batch mode for this instance.
 
         The process is started with ``-use MWG`` and with
-        ``-G -j -coordFormat "%+.7f"`` as common arguments.
+        ``-groupNames -json -coordFormat "%+.7f"`` as common arguments.
         These args will automatically be included in every command you run with
         :py:meth:`raw_execute()` or :py:meth:`process_files()`.
         """
@@ -128,7 +128,8 @@ class ExifTool(object, metaclass=Singleton):
         try:
             self._process = subprocess.Popen(
                 [EXECUTABLE, "-use", "MWG", "-stay_open", "True",  "-@", "-",
-                 "-common_args", "-coordFormat", "%+.7f", "-G", "-j"],
+                 "-common_args", "-coordFormat", "%+.7f", "-groupNames",
+                 "-json"],
                 universal_newlines=True,
                 bufsize=1,
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
