@@ -18,7 +18,8 @@ from scanner.exiftool import ExifTool
 __log__ = logging.getLogger(__name__)
 
 TAGS_TO_EXTRACT = (
-    "EXIF:*", "Composite:*", "File:MIMEType", "File:FileType"
+    "EXIF:*", "Composite:*", "File:MIMEType", "File:FileType",
+    "PNG:CreationTime"
 )
 TAGMAP = {
     # Camera properties
@@ -54,7 +55,7 @@ TAGMAP = {
 
     # Internal use only (non-serialized)
     "_dateutc": "Composite:GPSDateTime",
-    "_date": "Composite:DateTimeOriginal"
+    "_date": ["Composite:DateTimeOriginal", "PNG:CreationTime"],
 }
 
 # Functions to process certain fields
@@ -141,6 +142,7 @@ TAG_PROCESSORS = {
     "EXIF:LightSource": drop_unknown,
     "EXIF:MeteringMode": drop_unknown,
     "EXIF:SubjectDistanceRange": drop_unknown,
+    "PNG:CreationTime": parse_date,
 }
 
 # Format: ((max_size, square?), ..)
