@@ -184,7 +184,7 @@ class ExifTool(object, metaclass=Singleton):
                 break
             buff.append(line)
 
-    def raw_execute(self, *params, timeout=10):
+    def raw_execute(self, *params, timeout=None):
         """Execute the given batch of parameters with ``exiftool``.
 
         This method accepts any number of parameters and sends them to the
@@ -197,9 +197,11 @@ class ExifTool(object, metaclass=Singleton):
         sentinel and returned as a string, excluding the sentinel.
 
         If the tool doesn't respond with the sentinel within the time alloted
-        by the ``timeout`` parameter (10 seconds by default), a
-        ``subprocess.TimeoutExpired`` exception will be raised. By specifying
-        ``None`` as the timeout, the call will block forever.
+        by the ``timeout`` parameter, a ``subprocess.TimeoutExpired`` exception
+        will be raised. By specifying ``None`` as the timeout (the default),
+        the call will block forever. Note that using a timeout incurs a minor
+        performance penalty as a thread must be created, started, and joined in
+        order to asynchronously read the data from the ``exiftool`` process.
 
         .. note:: This is considered a low-level method, and should rarely be
            needed by application developers. As a result, there is no real
@@ -209,13 +211,17 @@ class ExifTool(object, metaclass=Singleton):
         self._process.stdin.flush()
 
         buff = []
-        # Use a thread to pull data into the buffer so we can use a timeout
-        stdout_thread = Thread(target=self._read_stdout, args=(buff,),
-                               daemon=True)
-        stdout_thread.start()
-        stdout_thread.join(timeout=timeout)
-        if stdout_thread.is_alive():
-            raise subprocess.TimeoutExpired(params, timeout)
+        if timeout and timeout > 0:
+            # Use a thread to pull data into the buffer so we can use a timeout
+            stdout_thread = Thread(target=self._read_stdout, args=(buff,),
+                                   daemon=True)
+            stdout_thread.start()
+            stdout_thread.join(timeout=timeout)
+            if stdout_thread.is_alive():
+                raise subprocess.TimeoutExpired(params, timeout)
+        else:
+            # Don't bother spinning up a thread, just read the data (blocks forever)
+            self._read_stdout(buff)
         return "".join(buff)
 
     def process_files(self, files, *, tags=None, timeout=5):
