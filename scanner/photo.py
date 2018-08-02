@@ -284,8 +284,13 @@ class Photo(MediaObject):
             return
 
         __log__.info("[thumbing] %s", self.name)
-        with Image(filename=self._path) as img:
+        try:
+            img = Image(filename=self._path)
+        except WandException as e:
+            __log__.error("[error] Failed to load image: %s", e)
+            return
 
+        with img:
             # If there are multiple frames only use the first one (this
             # prevents GIFs and ICOs from exploding their frames into
             # individual images)
