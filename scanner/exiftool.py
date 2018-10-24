@@ -224,7 +224,7 @@ class ExifTool(object, metaclass=Singleton):
             self._read_stdout(buff)
         return "".join(buff)
 
-    def process_files(self, files, *, tags=None, timeout=5):
+    def process_files(self, files, *, tags=None, timeout=None):
         """Process a batch of files with ``exiftool``.
 
         This method processes a single file or a list of files with the
@@ -233,12 +233,15 @@ class ExifTool(object, metaclass=Singleton):
         The tags to extract can be specified with the ``tags`` parameter
         (single strig or a list of strings).
 
-        By default, a ``ValueError`` will be raised after 5 seconds * the
-        number of files (ie. 10 seconds to process 2 files) if the tool hasn't
-        responded. This is to prevent getting stuck forever if the tool doesn't
-        respond in a known way. An alternative per-file timeout can be
-        specified with the ``timeout`` parameter (`None` will let the tool run
-        forever).
+        By default, the call will block until exiftool is finished generating
+        data. To prevent getting stuck forever if the tool doesn't respond in a
+        known way, a per-file timeout can be specified in seconds using the
+        ``timeout`` parameter.  A ``ValueError`` will be raised if the tool
+        doesn't respond within the timeout. In this case, 'per-file' means that
+        the timeout will be multiplied by the number of files to process (ie. a
+        timeout of 5 while processing 2 files will only error out after 10
+        seconds). This is to ensure that ``exiftool`` has enough time to read
+        and analyze each file.
 
         The return value is a list of dictionaries, mapping tag names to the
         corresponding values. All keys are strings with the tag names including
