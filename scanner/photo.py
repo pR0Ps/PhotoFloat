@@ -19,7 +19,7 @@ __log__ = logging.getLogger(__name__)
 
 TAGS_TO_EXTRACT = (
     "EXIF:*", "Composite:*", "File:MIMEType", "File:FileType",
-    "PNG:CreationTime"
+    "IPTC:Keywords", "PNG:CreationTime"
 )
 TAGMAP = {
     # Camera properties
@@ -43,7 +43,7 @@ TAGMAP = {
     # Photo metadata
     "creator": "Composite:Creator",
     "caption": "Composite:Description",
-    "keywords": "Composite:Keywords",
+    "keywords": ["IPTC:Keywords", "Composite:Keywords"],
     "gps": "Composite:GPSPosition",
 
     # Properties of the resulting image
@@ -125,6 +125,7 @@ def parse_description(x):
 
 drop_unknown = lambda x: x if not x.lower().startswith("unknown") else None
 drop_zero = lambda x: x if x != 0 else None
+ensure_list = lambda x: x if isinstance(x, list) else [x]
 TAG_PROCESSORS = {
     "Composite:Aperture": drop_zero,
     "Composite:DateTimeOriginal": parse_date,
@@ -134,6 +135,7 @@ TAG_PROCESSORS = {
     "Composite:GPSPosition": lambda x: list(map(float, x.split(", "))),
     "Composite:ISO": drop_zero,
     "Composite:ImageSize": lambda x: list(map(int, x.split("x"))),
+    "Composite:Keywords": ensure_list,
     "Composite:Orientation": drop_unknown,
     "Composite:ShutterSpeed": drop_zero,
     "EXIF:ExposureCompensation": drop_zero,
@@ -142,6 +144,7 @@ TAG_PROCESSORS = {
     "EXIF:LightSource": drop_unknown,
     "EXIF:MeteringMode": drop_unknown,
     "EXIF:SubjectDistanceRange": drop_unknown,
+    "IPTC:Keywords": ensure_list,
     "PNG:CreationTime": parse_date,
 }
 
