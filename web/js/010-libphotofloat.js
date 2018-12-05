@@ -7,7 +7,7 @@
   /* public member functions */
   PhotoFloat.prototype.album = function(subalbum, callback, error) {
     var cacheKey, ajaxOptions, self;
-    if (typeof subalbum.photos !== "undefined" && subalbum.photos !== null) {
+    if (typeof subalbum.media !== "undefined" && subalbum.media !== null) {
       callback(subalbum);
       return;
     }
@@ -30,8 +30,8 @@
         var i;
         for (var i = 0; i < album.albums.length; ++i)
           album.albums[i].parent = album;
-        for (var i = 0; i < album.photos.length; ++i)
-          album.photos[i].parent = album;
+        for (var i = 0; i < album.media.length; ++i)
+          album.media[i].parent = album;
         self.albumCache[cacheKey] = album;
         callback(album);
       }
@@ -49,15 +49,15 @@
     nextAlbum = function(album) {
       // Photos in albums are ordered oldest to newest
       // Albums are ordered newest to oldest
-      if (album.photos.length > 0) {
+      if (album.media.length > 0) {
         // Take the oldest photo in the album (first photo shown)
-        callback(album, album.photos[0]);
+        callback(album, album.media[0]);
       } else {
         // Delegate picking thumb to newest subalbum (first one shown)
         self.album(album.albums[0], nextAlbum, error);
       }
     };
-    if (typeof subalbum.photos !== "undefined" && subalbum.photos !== null)
+    if (typeof subalbum.media !== "undefined" && subalbum.media !== null)
       nextAlbum(subalbum);
     else this.album(subalbum, nextAlbum, error);
   };
@@ -83,13 +83,13 @@
       function(theAlbum) {
         var i = -1;
         if (photo !== null) {
-          for (var i = 0; i < theAlbum.photos.length; ++i) {
-            if (PhotoFloat.cachePath(theAlbum.photos[i].name) === photo) {
-              photo = theAlbum.photos[i];
+          for (var i = 0; i < theAlbum.media.length; ++i) {
+            if (PhotoFloat.cachePath(theAlbum.media[i].name) === photo) {
+              photo = theAlbum.media[i];
               break;
             }
           }
-          if (i >= theAlbum.photos.length) {
+          if (i >= theAlbum.media.length) {
             photo = null;
             i = -1;
           }
@@ -139,7 +139,7 @@
     return PhotoFloat.albumHash(album) + "/" + PhotoFloat.cachePath(photo.name);
   };
   PhotoFloat.albumHash = function(album) {
-    if (typeof album.photos !== "undefined" && album.photos !== null)
+    if (typeof album.media !== "undefined" && album.media !== null)
       return PhotoFloat.cachePath(album.path);
     return PhotoFloat.cachePath(album.parent.path + "/" + album.path);
   };

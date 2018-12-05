@@ -28,6 +28,23 @@ $(document).ready(function() {
   var maxSize = 1024;
   var placeholderImage = "/assets/loading.gif";
 
+  /* Utils */
+  function formatDate(timestamp) {
+    //Requires milliseconds instead of seconds
+    var date = new Date(timestamp * 1000);
+
+    // Input timestamps have unknown/mixed timezones
+    // parse using browsers timezone, convert back to "UTC", strip the UTC text off
+    return date.toUTCString().replace(" GMT", "");
+  }
+
+  function zeroPad(num, len, char) {
+    //Pad a number to a certain length with leading 0s
+    // zeroPad(4, 5) -> "00004"
+    var pad = new Array(1 + len).join("0");
+    return (pad + num).slice(-pad.length);
+  }
+
   /* Displays */
 
   function setTitle() {
@@ -114,26 +131,26 @@ $(document).ready(function() {
 
     if (populate) {
       photos = [];
-      for (var i = 0; i < currentAlbum.photos.length; ++i) {
+      for (var i = 0; i < currentAlbum.media.length; ++i) {
         link = $(
           '<a href="/view/' +
-            photoFloat.photoHash(currentAlbum, currentAlbum.photos[i]) +
+            photoFloat.photoHash(currentAlbum, currentAlbum.media[i]) +
             '"></a>'
         );
 
         // Create the image with the placeholder and swap to the real one once it loads
         image = $(
           '<img title="' +
-            photoFloat.trimExtension(currentAlbum.photos[i].name) +
+            photoFloat.trimExtension(currentAlbum.media[i].name) +
             '"' +
             'alt="' +
-            photoFloat.trimExtension(currentAlbum.photos[i].name) +
+            photoFloat.trimExtension(currentAlbum.media[i].name) +
             '"' +
             'src="' +
             placeholderImage +
             '" height="150" width="150" />'
         );
-        image.get(0).photo = currentAlbum.photos[i];
+        image.get(0).photo = currentAlbum.media[i];
         link.append(image);
         photos.push(link);
         (function(theLink, theImage, theAlbum) {
@@ -144,14 +161,14 @@ $(document).ready(function() {
           img.onerror = function() {
             photos.splice(photos.indexOf(theLink), 1);
             theLink.remove();
-            theAlbum.photos.splice(
-              theAlbum.photos.indexOf(theImage.get(0).photo),
+            theAlbum.media.splice(
+              theAlbum.media.indexOf(theImage.get(0).photo),
               1
             );
           };
           img.src = photoFloat.photoPath(
             theAlbum,
-            theAlbum.photos[i],
+            theAlbum.media[i],
             150,
             true
           );
@@ -170,7 +187,7 @@ $(document).ready(function() {
         );
         image = $("<div>" + currentAlbum.albums[i].path + "</div>")
           .addClass("album-button")
-          .attr("title", currentAlbum.albums[i].date);
+          .attr("title", formatDate(currentAlbum.albums[i].date));
         link.append(image);
         subalbums.push(link);
         (function(theContainer, theAlbum, theImage, theLink) {
@@ -184,7 +201,7 @@ $(document).ready(function() {
               };
               img.onerror = function() {
                 // Remove failed image from album data
-                album.photos.splice(album.photos.indexOf(photo), 1);
+                album.media.splice(album.media.indexOf(photo), 1);
                 //TODO: Try next image in album?
               };
               img.src = photoFloat.photoPath(album, photo, 150, true);
@@ -242,20 +259,20 @@ $(document).ready(function() {
     image = $("#photo");
     image
       .attr("alt", currentPhoto.name)
-      .attr("title", currentPhoto.date)
+      .attr("title", formatDate(currentPhoto.date))
       .attr("src", photoFloat.photoPath(currentAlbum, currentPhoto, 150, true));
     image.attr("src", photoSrc).on("load", scaleImage);
     $("head").append('<link rel="image_src" href="' + photoSrc + '" />');
 
     previousPhoto =
-      currentAlbum.photos[
+      currentAlbum.media[
         currentPhotoIndex - 1 < 0
-          ? currentAlbum.photos.length - 1
+          ? currentAlbum.media.length - 1
           : currentPhotoIndex - 1
       ];
     nextPhoto =
-      currentAlbum.photos[
-        currentPhotoIndex + 1 >= currentAlbum.photos.length
+      currentAlbum.media[
+        currentPhotoIndex + 1 >= currentAlbum.media.length
           ? 0
           : currentPhotoIndex + 1
       ];
@@ -285,7 +302,20 @@ $(document).ready(function() {
     if (typeof currentPhoto.lens !== "undefined")
       text += "<tr><td>Camera Lens</td><td>" + currentPhoto.lens + "</td></tr>";
     if (typeof currentPhoto.date !== "undefined" && currentPhoto.date != null) {
-      text += "<tr><td>Time Taken</td><td>" + currentPhoto.date + "</td></tr>";
+      text += "<tr><td>Time Taken</td><td>" + formatDate(currentPhoto.date);
+      if (typeof currentPhoto.timezone !== "undefined") {
+        var tz = currentPhoto.timezone;
+        if (tz == 0) {
+          text += "Z";
+        } else {
+          var sign = tz < 0 ? "-" : "+";
+          tz = Math.abs(tz);
+          var hours = Math.floor(tz);
+          var minutes = Math.floor((tz - hours) * 60);
+          text += sign + zeroPad(hours, 2) + ":" + zeroPad(minutes, 2);
+        }
+      }
+      text += "</td></tr>";
     }
     if (typeof currentPhoto.size !== "undefined")
       text +=

@@ -130,7 +130,7 @@ continually, consider setting up a cronjob to run the scan periodically.
 ## Serving the site
 
 To support external links (ie. `http://example.org/view/myalbum/photo1.jpg`), the web server needs
-to internally redirect any URL starting with "/view" to the `web/public/index.html` file. This file
+to internally redirect any URL starting with `/view` to the `web/public/index.html` file. This file
 will then serve the HTML and Javascript that will load the gallery at the correct URL.
 
 For testing locally, running the script`web/serve.py` script should be sufficient.
@@ -144,7 +144,7 @@ example config files in the `web/configs` directory.
 The scanner generates thumbnails for images in the following format: `cache/thumbs/[1st 2 chars of
 hash]/[rest of hash]_[size][square?].jpg`.
 
-While this improves caching for user and reduces the space required on the server, it makes denying
+While this improves caching for users and reduces the space required on the server, it makes denying
 access to specific image thumbnails very hard (without denying access to all the image thumbnails).
 
 Since the names are not something easily-guessable (like an auto-incrementing number, for example),
