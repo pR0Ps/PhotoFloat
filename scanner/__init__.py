@@ -43,7 +43,4 @@ class TreeLogFormatter(logging.Formatter):
 
 handler = logging.StreamHandler()
 handler.setFormatter(TreeLogFormatter("[%(levelname)8s] %(asctime)-15s %(message)s"))
-logger = logging.getLogger(__name__)
-logger.addHandler(handler)
-#logger.setLevel(logging.INFO)
-logger.setLevel(logging.DEBUG)
+logging.getLogger(__name__).addHandler(handler)

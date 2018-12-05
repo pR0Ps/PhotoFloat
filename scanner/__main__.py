@@ -13,6 +13,7 @@ from scanner.album import Album
 from scanner.common import save_album_cache
 
 __log__ = logging.getLogger(__name__)
+LOG_LEVELS = (logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG)
 
 def all_albums(root):
     yield root
@@ -80,7 +81,15 @@ def main():
                         help="Don't pull any location/GPS data out of photo metadata")
     parser.add_argument("--rescan-ignored", action="store_true",
                         help="Force a re-scan of files that were previously ignored")
+    parser.add_argument("-v", "--verbose", dest="verbose_count",
+                        action="count", default=0,
+                        help="Increase log verbosity for each occurence (default: ERROR)")
     config = parser.parse_args()
+
+    # Set the package-wide logging level
+    logging.getLogger(scanner.__name__).setLevel(
+        LOG_LEVELS[min(3, max(0, config.verbose_count))]
+    )
 
     # Store the salt, not the filename in config.salt
     saltfile = config.salt or None
