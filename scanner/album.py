@@ -7,7 +7,7 @@ import logging
 import os
 
 import scanner.globals
-from scanner.photo import MediaObject
+from scanner.media import MediaObject
 from scanner.common import json_cache, trim_base, trim_base_custom, load_album_cache
 
 
@@ -32,7 +32,7 @@ def log_depth(level, *args, category):
     __log__.log(level, *args, extra=dict(category="complete"))
 
 
-class Album(object):
+class Album:
 
     def __init__(self, path):
         self._media = []

@@ -3,7 +3,6 @@
 import contextlib
 from datetime import datetime, timedelta, timezone
 import hashlib
-import json
 import logging
 import os
 import re
@@ -59,7 +58,7 @@ TAGMAP = {
 }
 
 # Functions to process certain fields
-TIMEZONE_RE = re.compile("^(.*)([-+])(\d\d):(\d\d)$")
+TIMEZONE_RE = re.compile(r"^(.*)([-+])(\d\d):(\d\d)$")
 def parse_date(value):
     """Parses a string value to a datetime from a limited number of formats
 
@@ -103,7 +102,7 @@ def parse_date(value):
     # Datetime with tz offset
     return dt.replace(tzinfo=timezone(offset))
 
-FOCAL_LENGTH_RE = re.compile(".* mm \(35 mm equivalent: (.*) mm\)")
+FOCAL_LENGTH_RE = re.compile(r".* mm \(35 mm equivalent: (.*) mm\)")
 def parse_focal_length(x):
     """Use the 35mm equivalent if possible"""
     if not isinstance(x, str):
@@ -111,7 +110,7 @@ def parse_focal_length(x):
     m = FOCAL_LENGTH_RE.match(x)
     return m.group(1) if m else x
 
-PIXEL2_CAPTION_RE = re.compile("^Maker:.*?,Date:.*?,Ver:.*?,Lens:.*?,Act:.*?,E-.*?$")
+PIXEL2_CAPTION_RE = re.compile(r"^Maker:.*?,Date:.*?,Ver:.*?,Lens:.*?,Act:.*?,E-.*?$")
 def parse_description(x):
     """Strip whitespace and ignore some auto-generated descriptions"""
     x = x.strip()
@@ -154,7 +153,7 @@ TAG_PROCESSORS = {
 THUMB_SIZES = ((1600, 85, False), (1024, 85, False), (150, 70, True))
 
 
-class MediaObject(object):
+class MediaObject:
     def __init__(self, path, attributes):
         self._path = path
         self._attributes = attributes
@@ -265,7 +264,6 @@ class MediaObject(object):
         except Exception as e:
             __log__.warning("[error] Failed to make %s: %s", cls.__name__, e)
         return None
-
 
     def __repr__(self):
         return "<{} name={}, path={}>".format(self.__class__.__name__, self.name, self._path)

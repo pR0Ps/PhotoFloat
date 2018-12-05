@@ -50,7 +50,7 @@ class Singleton(type):
         return cls.instance
 
 
-class ExifTool(object, metaclass=Singleton):
+class ExifTool(metaclass=Singleton):
     """Run the `exiftool` command-line tool and communicate to it.
 
     The ``exiftool`` executable must be in your ``PATH`` for this to work.
@@ -118,12 +118,12 @@ class ExifTool(object, metaclass=Singleton):
         :py:meth:`raw_execute()` or :py:meth:`process_files()`.
         """
         if self.running:
-            self._run_cnt += 1
+            self._run_count += 1
             return
 
         try:
             self._process = subprocess.Popen(
-                [EXECUTABLE, "-use", "MWG", "-stay_open", "True",  "-@", "-",
+                [EXECUTABLE, "-use", "MWG", "-stay_open", "True", "-@", "-",
                  "-common_args", "-coordFormat", "%+.7f", "-groupNames",
                  "-json"],
                 universal_newlines=True,
@@ -132,10 +132,10 @@ class ExifTool(object, metaclass=Singleton):
                 stderr=subprocess.DEVNULL
             )
         except subprocess.SubprocessError:
-            self._run_cnt = 0
+            self._run_count = 0
             raise
         else:
-            self._run_cnt = 1
+            self._run_count = 1
 
     def terminate(self, force=False):
         """Terminate the ``exiftool`` process of this instance.
@@ -143,8 +143,8 @@ class ExifTool(object, metaclass=Singleton):
         If ``force`` is True, the process will be terminated, regardless of if
         any other instances of it are still currently being used.
         """
-        self._run_cnt -= 1
-        if not self.running or (not force and self._run_cnt > 0):
+        self._run_count -= 1
+        if not self.running or (not force and self._run_count > 0):
             return
 
         with contextlib.suppress(subprocess.SubprocessError, OSError):
@@ -159,7 +159,7 @@ class ExifTool(object, metaclass=Singleton):
 
         del self._process
         self._process = None
-        self._run_cnt = 0
+        self._run_count = 0
 
     def __enter__(self):
         self.start()

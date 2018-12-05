@@ -57,7 +57,7 @@ def remove_stale(root_album):
 
     if delete_count:
         if config.remove_stale:
-            out_str =  "cleaned up {} files"
+            out_str = "cleaned up {} files"
         else:
             out_str = ("{} stale cache entries detected (see above), use "
                        "'--remove-stale' to delete them")
@@ -74,7 +74,7 @@ def main():
     parser.add_argument("-c", "--cache", nargs='?',
                         help="Where photofloat will generate thumbnails and other data (default: <ALBUM>/../cache)")
     parser.add_argument("-s", "--salt", nargs='?', type=argparse.FileType('rb'),
-                        help="A file containing data to salt the image filenames with"),
+                        help="A file containing data to salt the image filenames with")
     parser.add_argument("--remove-stale", action="store_true",
                         help="Remove stale data/thumbnails from the cache (default: just list them)")
     parser.add_argument("--no-location", action="store_true",

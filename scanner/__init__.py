@@ -14,7 +14,7 @@ import scanner.globals
 # Set up a custom logger so log messages from the module are displayed in a
 # tree as the scanner works over directories.
 
-CATEGORY_RE = re.compile("\s*\[\s*([^\]]*)\s*\]\s*(.*)")
+CATEGORY_RE = re.compile(r"\s*\[\s*([^\]]*)\s*\]\s*(.*)")
 
 class TreeLogFormatter(logging.Formatter):
     def formatMessage(self, record):

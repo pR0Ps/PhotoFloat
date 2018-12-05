@@ -32,7 +32,7 @@ def cache_base(path):
         path = path.replace("--", "-")
     while path.find("__") != -1:
         path = path.replace("__", "_")
-    if len(path) == 0:
+    if not path:
         path = "root"
     return path
 
@@ -61,11 +61,11 @@ def object_hook(obj):
 
 class PhotoAlbumEncoder(json.JSONEncoder):
     def default(self, obj):
-        from scanner.photo import MediaObject
+        from scanner.media import MediaObject
         from scanner.album import Album
 
         if isinstance(obj, datetime):
             return calendar.timegm(obj.utctimetuple())
-        if isinstance(obj, Album) or isinstance(obj, MediaObject):
+        if isinstance(obj, (Album, MediaObject)):
             return obj.cache_data()
         return json.JSONEncoder.default(self, obj)
