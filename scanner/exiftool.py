@@ -40,6 +40,24 @@ EXECUTABLE = "exiftool"
 SENTINEL = "{ready}"
 
 
+def extract_binary(image, tag, fp):
+    """Extract a binary resource to a file object and return a CompletedProcess
+
+    Raises a CalledProcessError if the return code is non-zero
+    """
+    return subprocess.run(
+        [EXECUTABLE, '-binary', '-{}'.format(tag), image],
+        stdout=fp, stderr=subprocess.PIPE, check=True,
+        universal_newlines=True
+    )
+
+
+def extract_binary_to_file(image, tag, filename):
+    """Extract a binary resource to a file"""
+    with open(filename, 'wb') as f:
+        extract_binary(image, tag, f)
+
+
 class Singleton(type):
     """Metaclass to use the singleton [anti-]pattern"""
     instance = None
@@ -126,8 +144,8 @@ class ExifTool(metaclass=Singleton):
                 [EXECUTABLE, "-use", "MWG", "-stay_open", "True", "-@", "-",
                  "-common_args", "-coordFormat", "%+.7f", "-groupNames",
                  "-json"],
-                universal_newlines=True,
-                bufsize=1,
+                universal_newlines=True, # text mode
+                bufsize=1, # line buffered mode
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL
             )

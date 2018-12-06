@@ -10,7 +10,7 @@ import multiprocessing
 import scanner.globals
 from scanner.exiftool import ExifTool
 from scanner.album import Album
-from scanner.common import save_album_cache
+from scanner.utils import save_album_cache
 
 __log__ = logging.getLogger(__name__)
 LOG_LEVELS = (logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG)

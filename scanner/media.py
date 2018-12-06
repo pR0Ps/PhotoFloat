@@ -6,13 +6,15 @@ import hashlib
 import logging
 import os
 import re
+import subprocess
+import tempfile
 
-from wand.image import Image
 from wand.exceptions import WandException
 
 import scanner.globals
-from scanner.common import file_mtime, roundto
-from scanner.exiftool import ExifTool
+from scanner.utils import file_mtime, roundto, resize_image
+from scanner.exiftool import ExifTool, extract_binary
+
 
 __log__ = logging.getLogger(__name__)
 
@@ -277,65 +279,108 @@ class Photo(MediaObject):
         if "rotated 90" in self._attributes.get("orientation", "").lower():
             self._attributes["size"] = self._attributes["size"][::-1]
 
+    def generate_thumbs_from_path(self, img_path):
+        """Generate thumbnails from a path"""
+        try:
+            resizer = resize_image(path=img_path, name=self.name)
+        except WandException as e:
+            __log__.error("[error] Failed to load image: %s", e)
+            return
+        for path, (size, quality, square) in zip(self.thumbs, THUMB_SIZES):
+            try:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, 'wb') as fp:
+                    resizer.send((size, quality, square, fp))
+            except Exception as e:
+                with contextlib.suppress(OSError):
+                    os.remove(path)
+                break
+            except KeyboardInterrupt:
+                with contextlib.suppress(OSError):
+                    os.remove(path)
+                raise
+
     def generate_thumbs(self):
         """Generate thumbnails for this Photo"""
-
         if self.thumbs_exist():
             __log__.debug("[exists] %s", self.name)
             return
 
         __log__.info("[thumbing] %s", self.name)
-        try:
-            img = Image(filename=self._path)
-        except WandException as e:
-            __log__.error("[error] Failed to load image: %s", e)
+        self.generate_thumbs_from_path(self._path)
+
+
+DATA_SIZE_RE = re.compile(r".*Binary data (\d+) bytes.*")
+class RawPhoto(Photo):
+    """Custom handling for raw images"""
+
+    def generate_thumbs(self):
+        """Generate thumbnails for this RawPhoto
+
+        Tries to extract an embedded jpeg preview first, falling back to using
+        Wand to load and render the raw if one isn't found.
+        """
+        if self.thumbs_exist():
+            __log__.debug("[exists] %s", self.name)
             return
 
-        with img:
-            # If there are multiple frames only use the first one (this
-            # prevents GIFs and ICOs from exploding their frames into
-            # individual images)
-            if img.sequence:
-                for _ in range(1, len(img.sequence)):
-                    img.sequence.pop()
+        # Get the tag name for the largest non-thumbnail preview image
+        imgs = ExifTool().process_files(self._path, tags="preview:all")[0]
+        del imgs['SourceFile']
+        d = {}
+        for k, v in imgs.items():
+            if "thumbnail" in k.lower():
+                continue
+            m = DATA_SIZE_RE.match(v)
+            if m:
+                d[int(m.group(1))] = k
+            else:
+                continue
 
-            # Rotation and conversion to jpeg
-            img.auto_orient()
-            img.format = 'jpeg'
+        # Tag for biggest image
+        tag = d[max(d)] if d else None
+        if not tag:
+            super().generate_thumbs()
+            return
 
-            for path, (size, quality, square) in zip(self.thumbs, THUMB_SIZES):
-                __log__.debug("[thumbing] %s", _thumb_msg(self.name, size, square))
+        # Extract the preview image from the raw file and use it instead
+        with tempfile.NamedTemporaryFile() as fp:
+            __log__.debug(
+                "[extracting] Preview '%s' from raw file %s",
+                tag, self.name
+            )
+            try:
+                extract_binary(self._path, tag, fp)
+            except subprocess.CalledProcessError as e:
+                __log__.error(
+                    "[error] Failed to extract preview from image %s: '%s' (returned %d)",
+                    self.name, (e.stderr or "").strip(), e.returncode
+                )
+                return
 
-                thumb_dir = os.path.dirname(path)
-
-                if square:
-                    crop = min(img.size)
-                    img.crop(width=crop, height=crop, gravity='center')
-                    img.resize(size, size)
-                else:
-                    # Work around a bug in Wand's image transformation by
-                    # manually calculating the scaled dimensions and resizing
-                    ratio = size/max(img.size)
-                    img.resize(*[round(x*ratio) for x in img.size])
-
-                img.compression_quality = quality
-
-                try:
-                    os.makedirs(thumb_dir, exist_ok=True)
-                    img.save(filename=path)
-                except IOError as e:
-                    __log__.error("[error] Failed to save thumbnail")
-                    __log__.debug("[error] %s", e)
-                    with contextlib.suppress(OSError):
-                        os.remove(path)
-                except KeyboardInterrupt:
-                    with contextlib.suppress(OSError):
-                        os.remove(path)
-                    raise
+            __log__.info("[thumbing] Preview of raw file %s", self.name)
+            self.generate_thumbs_from_path(fp.name)
 
 
 MIMETYPE_MAP = {
-    "image": {"*":  Photo}
+    "image": {
+        "*":  Photo,
+        "x-adobe-dng": RawPhoto,
+        "x-canon-cr2": RawPhoto,
+        "x-canon-cr3": RawPhoto,
+        "x-canon-crw": RawPhoto,
+        "x-epson-erf": RawPhoto,
+        "x-fuji-raf": RawPhoto,
+        "x-kodak-kdc": RawPhoto,
+        "x-minolta-mrw": RawPhoto,
+        "x-nikon-nef": RawPhoto,
+        "x-olympus-orf": RawPhoto,
+        "x-panasonic-raw": RawPhoto,
+        "x-pentax-pef": RawPhoto,
+        "x-sigma-x3f": RawPhoto,
+        "x-sony-arw": RawPhoto,
+        "x-sony-sr2": RawPhoto,
+    },
 }
 
 def _get_file_hash(path):
@@ -406,13 +451,6 @@ def _extract_file_metadata(path):
     if offset is not None:
         data["timezone"] = roundto(offset.total_seconds()/3600, nearest=0.25)
     return data
-
-def _thumb_msg(name, size, square):
-    """Generate a thumbnail message"""
-    msg = "{} -> {}px".format(name, size)
-    if square:
-        msg += ", square"
-    return msg
 
 def image_cache(img_hash, size, square=False):
     """Use the hash to name the file
