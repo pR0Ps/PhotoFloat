@@ -13,7 +13,7 @@ from wand.exceptions import WandException
 
 import scanner.globals
 from scanner.utils import file_mtime, roundto, resize_image
-from scanner.exiftool import ExifTool, extract_binary
+from scanner.exiftool import ExifTool, extract_binary, single_command
 
 
 __log__ = logging.getLogger(__name__)
@@ -349,8 +349,20 @@ class RawPhoto(Photo):
                 "[extracting] Preview '%s' from raw file %s",
                 tag, self.name
             )
+            orientation = self._attributes.get("orientation")
             try:
                 extract_binary(self._path, tag, fp)
+                # If the file has a non-normal orientation, clone it to the
+                # extracted preview.
+                if orientation and "normal" not in orientation:
+                    __log__.debug(
+                        "[extracting] Cloning orientation '%s' to extracted preview of %s",
+                        orientation, self.name
+                    )
+                    single_command(
+                        "-overwrite_original", "-Orientation={}".format(orientation),
+                        fp.name
+                    )
             except subprocess.CalledProcessError as e:
                 __log__.error(
                     "[error] Failed to extract preview from image %s: '%s' (returned %d)",

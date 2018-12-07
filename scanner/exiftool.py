@@ -39,6 +39,16 @@ EXECUTABLE = "exiftool"
 # Sentinel indicating the end of the output of a sequence of commands.
 SENTINEL = "{ready}"
 
+def single_command(*args):
+    """Run a single command and return the result as a CompletedProcess
+
+    Raises a CalledProcessError if the return code is non-zero
+    """
+    return subprocess.run(
+        [EXECUTABLE, *args],
+        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        universal_newlines=True
+    )
 
 def extract_binary(image, tag, fp):
     """Extract a binary resource to a file object and return a CompletedProcess
