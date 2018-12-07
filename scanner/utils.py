@@ -59,14 +59,20 @@ def coroutine(func):
     return wrapper
 
 @coroutine
-def resize_image(path=None, blob=None, img=None, name=None):
+def resize_image(path=None, blob=None, img=None, name=None,
+                 fmt='jpeg', auto_orient=True, upscale=False):
     """A coroutine that resizes a single image multiple times
 
     Note that the same image buffer is used across multiple operations so
     operations should be ordered from highest-quality to lowest.
 
-    Takes a path, blob, or Wand Image object. The name is for logging purposes
-    only.
+    Parameters:
+     - path/blob/img: Source data  (img is a Wand Image object)
+     - name: The name of the file (for logging purposes only)
+     - fmt: The image format of the resulting images (default: 'jpeg')
+     - auto_orient: Automatically orient image before processing (default: true)
+     - upscale: Upscale images to fit the desired resolution if they're too small
+                (default: False)
 
     Receives a 4-tuple of (size, quality, square, fp)
      - size: The image will be resized so that the longest edge is this many pixels
@@ -89,9 +95,10 @@ def resize_image(path=None, blob=None, img=None, name=None):
             for _ in range(1, len(img.sequence)):
                 img.sequence.pop()
 
-        # Rotation and conversion to jpeg
-        img.auto_orient()
-        img.format = 'jpeg'
+        # Rotation and conversion to desired output format
+        if auto_orient:
+            img.auto_orient()
+        img.format = fmt
 
         while True:
             size, quality, square, fp = yield
@@ -104,12 +111,14 @@ def resize_image(path=None, blob=None, img=None, name=None):
             if square:
                 crop = min(img.size)
                 img.crop(width=crop, height=crop, gravity='center')
-                img.resize(size, size)
+                if upscale or size < crop:
+                    img.resize(size, size)
             else:
                 # Work around a bug in Wand's image transformation by
                 # manually calculating the scaled dimensions and resizing
                 ratio = size/max(img.size)
-                img.resize(*[round(x*ratio) for x in img.size])
+                if upscale or ratio < 1:
+                    img.resize(*[round(x*ratio) for x in img.size])
 
             img.compression_quality = quality
 
