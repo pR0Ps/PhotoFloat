@@ -39,6 +39,34 @@ EXECUTABLE = "exiftool"
 # Sentinel indicating the end of the output of a sequence of commands.
 SENTINEL = "{ready}"
 
+def single_command(*args):
+    """Run a single command and return the result as a CompletedProcess
+
+    Raises a CalledProcessError if the return code is non-zero
+    """
+    return subprocess.run(
+        [EXECUTABLE, *args],
+        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        universal_newlines=True
+    )
+
+def extract_binary(image, tag, fp):
+    """Extract a binary resource to a file object and return a CompletedProcess
+
+    Raises a CalledProcessError if the return code is non-zero
+    """
+    return subprocess.run(
+        [EXECUTABLE, '-binary', '-{}'.format(tag), image],
+        stdout=fp, stderr=subprocess.PIPE, check=True,
+        universal_newlines=True
+    )
+
+
+def extract_binary_to_file(image, tag, filename):
+    """Extract a binary resource to a file"""
+    with open(filename, 'wb') as f:
+        extract_binary(image, tag, f)
+
 
 class Singleton(type):
     """Metaclass to use the singleton [anti-]pattern"""
@@ -126,8 +154,8 @@ class ExifTool(metaclass=Singleton):
                 [EXECUTABLE, "-use", "MWG", "-stay_open", "True", "-@", "-",
                  "-common_args", "-coordFormat", "%+.7f", "-groupNames",
                  "-json"],
-                universal_newlines=True,
-                bufsize=1,
+                universal_newlines=True, # text mode
+                bufsize=1, # line buffered mode
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL
             )

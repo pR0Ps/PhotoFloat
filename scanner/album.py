@@ -8,7 +8,7 @@ import os
 
 import scanner.globals
 from scanner.media import MediaObject
-from scanner.common import json_cache, trim_base, trim_base_custom, load_album_cache
+from scanner.utils import json_cache, trim_base, trim_base_custom, load_album_cache
 
 
 __log__ = logging.getLogger(__name__)
