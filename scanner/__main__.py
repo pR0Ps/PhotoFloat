@@ -83,13 +83,14 @@ def main():
                         help="Force a re-scan of files that were previously ignored")
     parser.add_argument("-v", "--verbose", dest="verbose_count",
                         action="count", default=0,
-                        help="Increase log verbosity for each occurence (default: ERROR)")
+                        help="Increase log verbosity for each occurence up to 4 (default: ERROR)")
     config = parser.parse_args()
 
     # Set the package-wide logging level
     logging.getLogger(scanner.__name__).setLevel(
         LOG_LEVELS[min(3, max(0, config.verbose_count))]
     )
+    config.show_tracebacks = config.verbose_count > 3
 
     # Store the salt, not the filename in config.salt
     saltfile = config.salt or None

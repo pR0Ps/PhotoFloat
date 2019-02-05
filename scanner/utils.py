@@ -125,8 +125,7 @@ def resize_image(path=None, blob=None, img=None, name=None,
             try:
                 img.save(file=fp)
             except IOError as e:
-                __log__.error("[error] Failed to write image")
-                __log__.debug("[error] %s", e)
+                __log__.error("[error] Failed to write image: %s", e, exc_info=True)
                 raise
 
 # JSON

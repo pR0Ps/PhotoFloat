@@ -17,6 +17,16 @@ import scanner.globals
 CATEGORY_RE = re.compile(r"\s*\[\s*([^\]]*)\s*\]\s*(.*)")
 
 class TreeLogFormatter(logging.Formatter):
+
+    def formatException(self, ei):
+        """
+        If trackbacks are shown, format the exception normally, otherwise
+        return None
+        """
+        if scanner.globals.CONFIG.show_tracebacks:
+            return super().formatException(ei)
+        return None
+
     def formatMessage(self, record):
         msg = record.getMessage()
 
