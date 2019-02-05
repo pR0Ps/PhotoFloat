@@ -103,6 +103,30 @@ def main():
     # Set the config  and depth for global use
     scanner.globals.CONFIG = config
     scanner.globals.depth = 0
+
+    # Warn if we will be changing the system locale to one that supports UTF-8
+    # so subprocesses won't break with non-ascii characters. In Python 3.6+
+    # this is instead fixed by specifying the encoding when executing the subprocess.
+    if sys.version_info < (3, 6):
+        import locale
+        encoding = locale.getpreferredencoding(False)
+        if encoding.lower().replace("-", "") != 'utf8':
+            __log__.warning(
+                "The system locale specified a text encoding of '%s' - "
+                "setting it to 'UTF-8'", encoding
+            )
+            for l in ("C.UTF-8", "C.utf8", "UTF-8"):
+                try:
+                    locale.setlocale(locale.LC_CTYPE, l)
+                    break
+                except locale.Error:
+                    pass
+            else:
+                __log__.error(
+                    "Failed to set the current locale's text encoding - you "
+                    "may encounter issues while scanning files."
+                )
+
     try:
         if config.salt:
             __log__.info("Will use a salt from file '%s' to hash files", saltfile.name)

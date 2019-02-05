@@ -238,6 +238,9 @@ class MediaObject:
                 __log__.debug("[scanning] %s", name)
                 try:
                     attributes = _extract_file_metadata(path)
+                except (UnicodeEncodeError, UnicodeDecodeError):
+                    __log__.warning("[unreadable] Encoding error while extracting metadata from '%s'", name, exc_info=True)
+                    return None
                 except (KeyError, ValueError):
                     __log__.warning("[unreadable] Failed to extract metadata from '%s'", name, exc_info=True)
                     return None
