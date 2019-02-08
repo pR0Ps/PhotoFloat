@@ -290,7 +290,8 @@ $(document).ready(function() {
     );
     $("#original-link")
       .attr("target", "_blank")
-      .attr("href", photoFloat.originalPhotoPath(currentAlbum, currentPhoto));
+      .attr("href", photoFloat.originalPhotoPath(currentAlbum, currentPhoto))
+      .attr("download", "");
 
     text = "<table>";
     if (typeof currentPhoto.make !== "undefined")
