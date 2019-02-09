@@ -121,8 +121,8 @@ Now in your public directory, let's make a folder for cache and a folder for the
 When you're done, fill albums with photos and directories of photos. You can also use symlinks. Run
 the static generator:
 
-    $ photofloat albums
-    $ # OR python -m /path/to/PhotoFloat/scanner -c cache albums
+    $ photofloat -vv -c cache albums
+    $ # OR python -m /path/to/PhotoFloat/scanner -vv -c cache albums
 
 After it finishes, you just have to serve the content. For collections where photos are being added
 continually, consider setting up a cronjob to run the scan periodically.

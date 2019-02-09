@@ -61,7 +61,7 @@ class Album:
                     elif x.is_dir():
                         dirs.append(x)
             except OSError as e:
-                __log__.warning("[error] Can't access %s: %s", path, e)
+                __log__.warning("[error] Can't access %s: %s", path, e, exc_info=True)
                 return
 
             if files:
@@ -191,11 +191,11 @@ class Album:
                 {x["name"]: x for x in data["media"]},
                 set(data.get("ignored", []))
             )
-        except (FileNotFoundError) as e:
+        except FileNotFoundError as e:
             __log__.debug("No cache exists")
         except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
             # Catch issues with invalid dates parsed in the loading process
-            __log__.warning("[error] Corrupt cache: %r", e)
+            __log__.warning("[error] Corrupt cache: %r", e, exc_info=True)
         return ({}, set())
 
     def __repr__(self):

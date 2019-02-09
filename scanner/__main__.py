@@ -83,13 +83,14 @@ def main():
                         help="Force a re-scan of files that were previously ignored")
     parser.add_argument("-v", "--verbose", dest="verbose_count",
                         action="count", default=0,
-                        help="Increase log verbosity for each occurence (default: ERROR)")
+                        help="Increase log verbosity for each occurence up to 4 (default: ERROR)")
     config = parser.parse_args()
 
     # Set the package-wide logging level
     logging.getLogger(scanner.__name__).setLevel(
         LOG_LEVELS[min(3, max(0, config.verbose_count))]
     )
+    config.show_tracebacks = config.verbose_count > 3
 
     # Store the salt, not the filename in config.salt
     saltfile = config.salt or None
@@ -102,6 +103,30 @@ def main():
     # Set the config  and depth for global use
     scanner.globals.CONFIG = config
     scanner.globals.depth = 0
+
+    # Warn if we will be changing the system locale to one that supports UTF-8
+    # so subprocesses won't break with non-ascii characters. In Python 3.6+
+    # this is instead fixed by specifying the encoding when executing the subprocess.
+    if sys.version_info < (3, 6):
+        import locale
+        encoding = locale.getpreferredencoding(False)
+        if encoding.lower().replace("-", "") != 'utf8':
+            __log__.warning(
+                "The system locale specified a text encoding of '%s' - "
+                "setting it to 'UTF-8'", encoding
+            )
+            for l in ("C.UTF-8", "C.utf8", "UTF-8"):
+                try:
+                    locale.setlocale(locale.LC_CTYPE, l)
+                    break
+                except locale.Error:
+                    pass
+            else:
+                __log__.error(
+                    "Failed to set the current locale's text encoding - you "
+                    "may encounter issues while scanning files."
+                )
+
     try:
         if config.salt:
             __log__.info("Will use a salt from file '%s' to hash files", saltfile.name)

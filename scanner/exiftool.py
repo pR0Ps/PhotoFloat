@@ -29,6 +29,7 @@ Example usage::
 
 import contextlib
 import subprocess
+import sys
 from threading import Thread
 import json
 
@@ -39,6 +40,12 @@ EXECUTABLE = "exiftool"
 # Sentinel indicating the end of the output of a sequence of commands.
 SENTINEL = "{ready}"
 
+# The encoding param was added in Python 3.6
+_TEXT_MODE = {'universal_newlines': True}
+if sys.version_info >= (3, 6):
+    _TEXT_MODE['encoding'] = 'utf-8'
+
+
 def single_command(*args):
     """Run a single command and return the result as a CompletedProcess
 
@@ -47,7 +54,7 @@ def single_command(*args):
     return subprocess.run(
         [EXECUTABLE, *args],
         check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        universal_newlines=True
+        **_TEXT_MODE
     )
 
 def extract_binary(image, tag, fp):
@@ -58,7 +65,7 @@ def extract_binary(image, tag, fp):
     return subprocess.run(
         [EXECUTABLE, '-binary', '-{}'.format(tag), image],
         stdout=fp, stderr=subprocess.PIPE, check=True,
-        universal_newlines=True
+        **_TEXT_MODE
     )
 
 
@@ -154,10 +161,10 @@ class ExifTool(metaclass=Singleton):
                 [EXECUTABLE, "-use", "MWG", "-stay_open", "True", "-@", "-",
                  "-common_args", "-coordFormat", "%+.7f", "-groupNames",
                  "-json"],
-                universal_newlines=True, # text mode
                 bufsize=1, # line buffered mode
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL
+                stderr=subprocess.DEVNULL,
+                **_TEXT_MODE
             )
         except subprocess.SubprocessError:
             self._run_count = 0

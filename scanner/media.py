@@ -227,7 +227,7 @@ class MediaObject:
         try:
             mtime = file_mtime(path)
         except OSError as e:
-            __log__.error("[unreadable] Failed to get mtime of file '%s'", name)
+            __log__.error("[unreadable] Failed to get mtime of file '%s'", name, exc_info=True)
             return None
 
         fhash = None
@@ -238,8 +238,11 @@ class MediaObject:
                 __log__.debug("[scanning] %s", name)
                 try:
                     attributes = _extract_file_metadata(path)
+                except (UnicodeEncodeError, UnicodeDecodeError):
+                    __log__.warning("[unreadable] Encoding error while extracting metadata from '%s'", name, exc_info=True)
+                    return None
                 except (KeyError, ValueError):
-                    __log__.warning("[unreadable] Failed to extract metadata from '%s'", name)
+                    __log__.warning("[unreadable] Failed to extract metadata from '%s'", name, exc_info=True)
                     return None
 
         if "hash" not in attributes:
@@ -264,7 +267,7 @@ class MediaObject:
         try:
             return cls(path, attributes)
         except Exception as e:
-            __log__.warning("[error] Failed to make %s: %s", cls.__name__, e)
+            __log__.warning("[error] Failed to make %s: %s", cls.__name__, e, exc_info=True)
         return None
 
     def __repr__(self):
@@ -284,7 +287,7 @@ class Photo(MediaObject):
         try:
             resizer = resize_image(path=img_path, name=self.name)
         except WandException as e:
-            __log__.error("[error] Failed to load image: %s", e)
+            __log__.error("[error] Failed to load image: %s", e, exc_info=True)
             return
         for path, (size, quality, square) in zip(self.thumbs, THUMB_SIZES):
             try:
@@ -366,7 +369,7 @@ class RawPhoto(Photo):
             except subprocess.CalledProcessError as e:
                 __log__.error(
                     "[error] Failed to extract preview from image %s: '%s' (returned %d)",
-                    self.name, (e.stderr or "").strip(), e.returncode
+                    self.name, (e.stderr or "").strip(), e.returncode, exc_info=True
                 )
                 return
 
@@ -429,7 +432,7 @@ def _extract_file_metadata(path):
                 try:
                     val = TAG_PROCESSORS[t](val)
                 except (TypeError, ValueError) as e:
-                    __log__.debug("[error] Failed to process value '%s' (%s)", val, e)
+                    __log__.debug("[error] Failed to process value '%s' (%s)", val, e, exc_info=True)
                     continue
             if val is not None:
                 data[attr] = val
