@@ -149,22 +149,15 @@ TAG_PROCESSORS = {
     "PNG:CreationTime": parse_date,
 }
 
-# Format: ((max_size, square?), ..)
-# Note that these are generated in sequence by continually modifying the same
-# buffer. Ex: 1600 -> 1024 -> 150s will work. The reverse won't.
-THUMB_SIZES = ((1600, 85, False), (1024, 85, False), (150, 70, True))
-
 
 class MediaObject:
     def __init__(self, path, attributes):
         self._path = path
         self._attributes = attributes
 
-        self._thumb_paths = [
-            os.path.join(scanner.globals.CONFIG.cache,
-                         image_cache(self.hash, size, square))
-            for size, _, square in THUMB_SIZES
-        ]
+        # Note that these are generated in sequence by continually modifying the same
+        # buffer. Ex: 1600 -> 1024 -> 150 will work. The reverse won't.
+        self.thumb_data = [(1024, 85, False), (150, 70, True)]
 
     # Sort by date (old -> new), then alphabetical
     @property
@@ -200,7 +193,12 @@ class MediaObject:
 
     @property
     def thumbs(self):
-        return self._thumb_paths
+        return (image_cache(self.hash, size) for size, _, _ in self.thumb_data)
+
+    @property
+    def thumb_sizes(self):
+        # Normal order is big -> small, return it reversed
+        return [size or "full" for size, _, _ in reversed(self.thumb_data)]
 
     def thumbs_exist(self):
         """Check if all thumbnails exist and are new enough"""
@@ -217,6 +215,7 @@ class MediaObject:
         return {
             "name": self.name,
             "date": self.date,
+            "previews": self.thumb_sizes,
             **{k:v for k, v in self._attributes.items() if not k.startswith("_")}
         }
 
@@ -289,7 +288,8 @@ class Photo(MediaObject):
         except WandException as e:
             __log__.error("[error] Failed to load image: %s", e, exc_info=True)
             return
-        for path, (size, quality, square) in zip(self.thumbs, THUMB_SIZES):
+        for (size, quality, square) in self.thumb_data:
+            path = image_cache(self.hash, size)
             try:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, 'wb') as fp:
@@ -316,6 +316,12 @@ class Photo(MediaObject):
 DATA_SIZE_RE = re.compile(r".*Binary data (\d+) bytes.*")
 class RawPhoto(Photo):
     """Custom handling for raw images"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, *kwargs)
+
+        # Generate a full-size jpeg preview
+        self.thumb_data.insert(0, (None, 95, False))
 
     def generate_thumbs(self):
         """Generate thumbnails for this RawPhoto
@@ -467,14 +473,12 @@ def _extract_file_metadata(path):
         data["timezone"] = roundto(offset.total_seconds()/3600, nearest=0.25)
     return data
 
-def image_cache(img_hash, size, square=False):
+def image_cache(img_hash, size):
     """Use the hash to name the file
 
     Output file under the cache will be:
-    `thumbs/[1st 2 chars of hash]/[rest of hash]_[size][square?].jpg`
+    `thumbs/[1st 2 chars of hash]/[rest of hash]_[size].jpg`
     """
-    if square:
-        suffix = "{}s".format(size)
-    else:
-        suffix = size
-    return os.path.join("thumbs", img_hash[:2], "{}_{}.jpg".format(img_hash[2:], suffix))
+    if size is None:
+        size = "full"
+    return os.path.join(scanner.globals.CONFIG.cache, "thumbs", img_hash[:2], "{}_{}.jpg".format(img_hash[2:], size))
