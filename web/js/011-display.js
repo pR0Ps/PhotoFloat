@@ -306,19 +306,23 @@ $(document).ready(function() {
       $("#jpg-link").hide();
     }
 
+    thumbPath = photoFloat.photoPath(
+      currentAlbum,
+      currentPhoto,
+      getThumbnailSize(currentPhoto)
+    );
     image = $("#photo");
     image
+      .css("opacity", "")
       .attr("alt", currentPhoto.name)
       .attr("title", formatDate(currentPhoto.date))
-      .attr(
-        "src",
-        photoFloat.photoPath(
-          currentAlbum,
-          currentPhoto,
-          getThumbnailSize(currentPhoto)
-        )
-      );
-    image.attr("src", photoSrc).on("load", scaleImage);
+      .attr("src", thumbPath);
+    image
+      .attr("src", photoSrc)
+      .on("load", scaleImage)
+      .on("error", function() {
+        image.attr("src", thumbPath).css("opacity", "0.50");
+      });
     $("head").append('<link rel="image_src" href="' + photoSrc + '" />');
 
     previousPhoto =
