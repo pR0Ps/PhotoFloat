@@ -278,7 +278,8 @@ class Photo(MediaObject):
         super().__init__(path, attributes)
 
         # Taken sideways, invert the dimensions
-        if "rotated 90" in self._attributes.get("orientation", "").lower():
+        orientation = self._attributes.get("orientation", "")
+        if "90" in orientation or "270" in orientation:
             self._attributes["size"] = self._attributes["size"][::-1]
 
     def generate_thumbs_from_path(self, img_path):
