@@ -75,7 +75,8 @@ def resize_image(path=None, blob=None, img=None, name=None,
                 (default: False)
 
     Receives a 4-tuple of (size, quality, square, fp)
-     - size: The image will be resized so that the longest edge is this many pixels
+     - size: The image will be resized so that the longest edge is this many pixels.
+             If None the image will not be resized.
      - quality: The JPEG quality level
      - square: If true, the images will be cropped to square before being resized
      - fp: A file-like object to write() the result into
@@ -103,17 +104,18 @@ def resize_image(path=None, blob=None, img=None, name=None,
         while True:
             size, quality, square, fp = yield
 
-            __log__.debug(
-                "[resizing] %s -> %dpx%s",
-                name or "<img data>", size, ", square" if square else ""
+            __log__.debug("[resizing] %s -> %s%s",
+                name or "<img data>",
+                "{}px".format(size) if size else "fullsize",
+                ", square" if square else ""
             )
 
             if square:
                 crop = min(img.size)
                 img.crop(width=crop, height=crop, gravity='center')
-                if upscale or size < crop:
+                if size is not None and (upscale or size < crop):
                     img.resize(size, size)
-            else:
+            elif size is not None:
                 # Work around a bug in Wand's image transformation by
                 # manually calculating the scaled dimensions and resizing
                 ratio = size/max(img.size)

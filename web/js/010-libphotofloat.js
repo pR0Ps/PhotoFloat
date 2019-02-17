@@ -143,17 +143,14 @@
       return PhotoFloat.cachePath(album.path);
     return PhotoFloat.cachePath(album.parent.path + "/" + album.path);
   };
-  PhotoFloat.photoPath = function(album, photo, size, square) {
-    var suffix, hash;
-    if (square) suffix = size.toString() + "s";
-    else suffix = size.toString();
+  PhotoFloat.photoPath = function(album, photo, size) {
     return (
       "/cache/thumbs/" +
       photo.hash.slice(0, 2) +
       "/" +
       photo.hash.slice(2) +
       "_" +
-      suffix +
+      size.toString() +
       ".jpg"
     );
   };

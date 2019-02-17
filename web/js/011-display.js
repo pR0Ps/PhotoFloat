@@ -25,8 +25,33 @@ $(document).ready(function() {
   var previousPhoto = null;
   var originalTitle = document.title;
   var photoFloat = new PhotoFloat();
-  var maxSize = 1024;
+  var fullscreen = false;
   var placeholderImage = "/assets/loading.gif";
+
+  /* Image selectors */
+  function getThumbnailSize(media) {
+    /* The image to use for the thumbnail */
+    var n = media.previews.length;
+    for (var i = 0; i < n; i++) {
+      var c = media.previews[i];
+      if (c != "full" && c >= 100 && c < 500) {
+        return c;
+      }
+    }
+    return null;
+  }
+
+  function getPreviewSize(media, fullscreen) {
+    /* The image to use for the preview */
+    var n = media.previews.length;
+    for (var i = n - 1; i >= 0; i--) {
+      var c = media.previews[i];
+      if (c != "full" && c < 1600) {
+        return c;
+      }
+    }
+    return null;
+  }
 
   /* Utils */
   function formatDate(timestamp) {
@@ -46,7 +71,6 @@ $(document).ready(function() {
   }
 
   /* Displays */
-
   function setTitle() {
     var title = "",
       documentTitle = "",
@@ -139,18 +163,23 @@ $(document).ready(function() {
         );
 
         // Create the image with the placeholder and swap to the real one once it loads
+        media = currentAlbum.media[i];
         image = $(
           '<img title="' +
-            photoFloat.trimExtension(currentAlbum.media[i].name) +
+            photoFloat.trimExtension(media.name) +
             '"' +
             'alt="' +
-            photoFloat.trimExtension(currentAlbum.media[i].name) +
+            photoFloat.trimExtension(media.name) +
             '"' +
             'src="' +
             placeholderImage +
-            '" height="150" width="150" />'
+            '" height="' +
+            getThumbnailSize(media) +
+            '" width="' +
+            getThumbnailSize(media) +
+            '" />'
         );
-        image.get(0).photo = currentAlbum.media[i];
+        image.get(0).photo = media;
         link.append(image);
         photos.push(link);
         (function(theLink, theImage, theAlbum) {
@@ -169,8 +198,7 @@ $(document).ready(function() {
           img.src = photoFloat.photoPath(
             theAlbum,
             theAlbum.media[i],
-            150,
-            true
+            getThumbnailSize(theAlbum.media[i])
           );
         })(link, image, currentAlbum);
       }
@@ -204,7 +232,11 @@ $(document).ready(function() {
                 album.media.splice(album.media.indexOf(photo), 1);
                 //TODO: Try next image in album?
               };
-              img.src = photoFloat.photoPath(album, photo, 150, true);
+              img.src = photoFloat.photoPath(
+                album,
+                photo,
+                getThumbnailSize(photo)
+              );
             },
             function error() {
               theContainer.albums.splice(
@@ -255,12 +287,37 @@ $(document).ready(function() {
   }
   function showPhoto() {
     var image, photoSrc, previousPhoto, nextPhoto, nextLink, text;
-    photoSrc = photoFloat.photoPath(currentAlbum, currentPhoto, maxSize, false);
+    photoSrc = photoFloat.photoPath(
+      currentAlbum,
+      currentPhoto,
+      getPreviewSize(currentPhoto, fullscreen)
+    );
+
+    /* enable/disable fullsize JPG download */
+    if (currentPhoto.previews.includes("full")) {
+      $("#jpg-link-divider").show();
+      $("#jpg-link")
+        .show()
+        .attr("target", "_blank")
+        .attr("href", photoFloat.photoPath(currentAlbum, currentPhoto, "full"))
+        .attr("download", currentPhoto.name + ".jpg");
+    } else {
+      $("#jpg-link-divider").hide();
+      $("#jpg-link").hide();
+    }
+
     image = $("#photo");
     image
       .attr("alt", currentPhoto.name)
       .attr("title", formatDate(currentPhoto.date))
-      .attr("src", photoFloat.photoPath(currentAlbum, currentPhoto, 150, true));
+      .attr(
+        "src",
+        photoFloat.photoPath(
+          currentAlbum,
+          currentPhoto,
+          getThumbnailSize(currentPhoto)
+        )
+      );
     image.attr("src", photoSrc).on("load", scaleImage);
     $("head").append('<link rel="image_src" href="' + photoSrc + '" />');
 
@@ -277,8 +334,16 @@ $(document).ready(function() {
           : currentPhotoIndex + 1
       ];
     $.preloadImages(
-      photoFloat.photoPath(currentAlbum, nextPhoto, maxSize, false),
-      photoFloat.photoPath(currentAlbum, previousPhoto, maxSize, false)
+      photoFloat.photoPath(
+        currentAlbum,
+        nextPhoto,
+        getPreviewSize(nextPhoto, fullscreen)
+      ),
+      photoFloat.photoPath(
+        currentAlbum,
+        previousPhoto,
+        getPreviewSize(previousPhoto, fullscreen)
+      )
     );
 
     nextLink = "/view/" + photoFloat.photoHash(currentAlbum, nextPhoto);
@@ -290,7 +355,8 @@ $(document).ready(function() {
     );
     $("#original-link")
       .attr("target", "_blank")
-      .attr("href", photoFloat.originalPhotoPath(currentAlbum, currentPhoto));
+      .attr("href", photoFloat.originalPhotoPath(currentAlbum, currentPhoto))
+      .attr("download", currentPhoto.name);
 
     text = "<table>";
     if (typeof currentPhoto.make !== "undefined")
@@ -507,7 +573,7 @@ $(document).ready(function() {
       .click(function() {
         $("#photo").fullScreen({
           callback: function(isFullscreen) {
-            maxSize = isFullscreen ? 1600 : 1024;
+            fullscreen = isFullscreen;
             showPhoto();
           }
         });
