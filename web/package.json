@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "scripts": {
     "clean": "rm -f public/assets/scripts.min.js* public/assets/styles.min.css*",
-    "prettier": "prettier --write {css,js}/*",
+    "prettier": "prettier --write \"{css,js}/!(*jquery*)\"",
     "build:js": "uglifyjs js/*.js --compress --mangle -o public/assets/scripts.min.js --source-map \"url='scripts.min.js.map',includeSources=true\" ",
     "build:css": "cat css/*.css | csso -o public/assets/styles.min.css --map public/assets/styles.min.css.map",
     "build": "npm run prettier && npm run clean && npm run build:js && npm run build:css"
