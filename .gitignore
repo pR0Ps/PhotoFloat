@@ -3,8 +3,7 @@
 .htaccess
 
 # Generated files
-web/public/albums
-web/public/cache
+web/public
 *.min.js
 *.min.js.map
 *.min.css

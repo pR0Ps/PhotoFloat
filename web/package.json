@@ -1,16 +1,21 @@
 {
   "version": "1.0.0",
   "scripts": {
-    "clean": "rm -f public/assets/scripts.min.js* public/assets/styles.min.css*",
+    "clean": "rm -f public\"$npm_package_config_webroot_base_folder\"assets/scripts.min.js* public/assets/styles.min.css*",
     "prettier": "prettier --write {css,js}/*",
-    "build:js": "uglifyjs js/*.js --compress --mangle -o public/assets/scripts.min.js --source-map \"url='scripts.min.js.map',includeSources=true\" ",
-    "build:css": "cat css/*.css | csso -o public/assets/styles.min.css --map public/assets/styles.min.css.map",
-    "build": "npm run prettier && npm run clean && npm run build:js && npm run build:css"
+    "build:assets": "mkdir -p public\"$npm_package_config_webroot_base_folder\"assets/ && cp assets/* public\"$npm_package_config_webroot_base_folder\"assets/",
+    "build:js": "cat js/*.js | sed 's%${WEBROOT_BASE_FOLDER}%'$npm_package_config_webroot_base_folder'%g' | uglifyjs --compress --mangle -o public\"$npm_package_config_webroot_base_folder\"assets/scripts.min.js --source-map \"url='scripts.min.js.map',includeSources=true\" ",
+    "build:css": "cat css/*.css | sed 's%${WEBROOT_BASE_FOLDER}%'$npm_package_config_webroot_base_folder'%g' | csso -o public\"$npm_package_config_webroot_base_folder\"assets/styles.min.css --map public\"$npm_package_config_webroot_base_folder\"assets/styles.min.css.map",
+    "build:html": "cat html/index.html | sed 's%${WEBROOT_BASE_FOLDER}%'$npm_package_config_webroot_base_folder'%g' > public\"$npm_package_config_webroot_base_folder\"index.html",
+    "build": "npm run prettier && npm run clean && npm run build:assets && npm run build:js && npm run build:css && npm run build:html"
   },
   "license": "GPL-2.0",
   "devDependencies": {
     "csso-cli": "^1.0.0",
     "prettier": "^1.6.1",
     "uglify-js": "^3.0.28"
+  },
+  "config": {
+    "webroot_base_folder": "/"
   }
 }

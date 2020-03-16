@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  /* 
+  /*
    * The display is not yet object oriented. It's procedural code
    * broken off into functions. It makes use of libphotofloat's
    * PhotoFloat class for the network and management logic.
@@ -26,7 +26,7 @@ $(document).ready(function() {
   var originalTitle = document.title;
   var photoFloat = new PhotoFloat();
   var fullscreen = false;
-  var placeholderImage = "/assets/loading.gif";
+  var placeholderImage = get_webroot_folder() + "assets/loading.gif";
 
   /* Image selectors */
   function getThumbnailSize(media) {
@@ -89,7 +89,9 @@ $(document).ready(function() {
       if (i) last += "/" + components[i];
       if (i < components.length - 1 || currentPhoto !== null)
         title +=
-          '<a href="/view/' +
+          '<a href="' +
+          get_webroot_folder() +
+          "view/" +
           (i ? photoFloat.cachePath(last.substring(1)) : "") +
           '">';
       title += components[i];
@@ -157,7 +159,9 @@ $(document).ready(function() {
       photos = [];
       for (var i = 0; i < currentAlbum.media.length; ++i) {
         link = $(
-          '<a href="/view/' +
+          '<a href="' +
+            get_webroot_folder() +
+            "view/" +
             photoFloat.photoHash(currentAlbum, currentAlbum.media[i]) +
             '"></a>'
         );
@@ -209,7 +213,9 @@ $(document).ready(function() {
       subalbums = [];
       for (var i = 0; i < currentAlbum.albums.length; ++i) {
         link = $(
-          '<a href="/view/' +
+          '<a href="' +
+            get_webroot_folder() +
+            "view/" +
             photoFloat.albumHash(currentAlbum.albums[i]) +
             '"></a>'
         );
@@ -346,12 +352,17 @@ $(document).ready(function() {
       )
     );
 
-    nextLink = "/view/" + photoFloat.photoHash(currentAlbum, nextPhoto);
+    nextLink =
+      get_webroot_folder() +
+      "view/" +
+      photoFloat.photoHash(currentAlbum, nextPhoto);
     $("#next-photo").attr("href", nextLink);
     $("#next").attr("href", nextLink);
     $("#back").attr(
       "href",
-      "/view/" + photoFloat.photoHash(currentAlbum, previousPhoto)
+      get_webroot_folder() +
+        "view/" +
+        photoFloat.photoHash(currentAlbum, previousPhoto)
     );
     $("#original-link")
       .attr("target", "_blank")
@@ -635,7 +646,7 @@ $(document).ready(function() {
   });
 
   // Initial page load
-  if (location.pathname == "/") {
+  if (location.pathname == get_webroot_folder()) {
     // Causes the page to redirect and reload
     location.href += "view";
   } else {
