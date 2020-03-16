@@ -25,7 +25,7 @@
     ajaxOptions = {
       type: "GET",
       dataType: "json",
-      url: g_webroot_folder + "cache/" + cacheKey + ".json",
+      url: get_webroot_folder() + "cache/" + cacheKey + ".json",
       success: function(album) {
         var i;
         for (var i = 0; i < album.albums.length; ++i)
@@ -66,7 +66,7 @@
     path = location.pathname;
 
     // trim off "/view" and leading/trailing slashes
-    webroot_base_regex = new RegExp("^" + g_webroot_folder + "*");
+    webroot_base_regex = new RegExp("^" + get_webroot_folder() + "*");
     path = path
       .replace(webroot_base_regex, "")
       .replace(/^view\/*/, "")
@@ -149,7 +149,7 @@
   };
   PhotoFloat.photoPath = function(album, photo, size) {
     return (
-      g_webroot_folder +
+      get_webroot_folder() +
       "cache/thumbs/" +
       photo.hash.slice(0, 2) +
       "/" +

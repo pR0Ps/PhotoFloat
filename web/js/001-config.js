@@ -1,1 +1,3 @@
-var g_webroot_folder = "${WEBROOT_BASE_FOLDER}";
+function get_webroot_folder() {
+  return "${WEBROOT_BASE_FOLDER}";
+}

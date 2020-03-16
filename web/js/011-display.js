@@ -26,7 +26,7 @@ $(document).ready(function() {
   var originalTitle = document.title;
   var photoFloat = new PhotoFloat();
   var fullscreen = false;
-  var placeholderImage = g_webroot_folder + "assets/loading.gif";
+  var placeholderImage = get_webroot_folder() + "assets/loading.gif";
 
   /* Image selectors */
   function getThumbnailSize(media) {
@@ -90,7 +90,7 @@ $(document).ready(function() {
       if (i < components.length - 1 || currentPhoto !== null)
         title +=
           '<a href="' +
-          g_webroot_folder +
+          get_webroot_folder() +
           "view/" +
           (i ? photoFloat.cachePath(last.substring(1)) : "") +
           '">';
@@ -160,7 +160,7 @@ $(document).ready(function() {
       for (var i = 0; i < currentAlbum.media.length; ++i) {
         link = $(
           '<a href="' +
-            g_webroot_folder +
+            get_webroot_folder() +
             "view/" +
             photoFloat.photoHash(currentAlbum, currentAlbum.media[i]) +
             '"></a>'
@@ -214,7 +214,7 @@ $(document).ready(function() {
       for (var i = 0; i < currentAlbum.albums.length; ++i) {
         link = $(
           '<a href="' +
-            g_webroot_folder +
+            get_webroot_folder() +
             "view/" +
             photoFloat.albumHash(currentAlbum.albums[i]) +
             '"></a>'
@@ -353,14 +353,14 @@ $(document).ready(function() {
     );
 
     nextLink =
-      g_webroot_folder +
+      get_webroot_folder() +
       "view/" +
       photoFloat.photoHash(currentAlbum, nextPhoto);
     $("#next-photo").attr("href", nextLink);
     $("#next").attr("href", nextLink);
     $("#back").attr(
       "href",
-      g_webroot_folder +
+      get_webroot_folder() +
         "view/" +
         photoFloat.photoHash(currentAlbum, previousPhoto)
     );
@@ -646,7 +646,7 @@ $(document).ready(function() {
   });
 
   // Initial page load
-  if (location.pathname == g_webroot_folder) {
+  if (location.pathname == get_webroot_folder()) {
     // Causes the page to redirect and reload
     location.href += "view";
   } else {
