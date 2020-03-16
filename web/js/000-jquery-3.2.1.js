@@ -531,15 +531,15 @@
   }
   var Sizzle =
     /*!
- * Sizzle CSS Selector Engine v2.3.3
- * https://sizzlejs.com/
- *
- * Copyright jQuery Foundation and other contributors
- * Released under the MIT license
- * http://jquery.org/license
- *
- * Date: 2016-08-08
- */
+     * Sizzle CSS Selector Engine v2.3.3
+     * https://sizzlejs.com/
+     *
+     * Copyright jQuery Foundation and other contributors
+     * Released under the MIT license
+     * http://jquery.org/license
+     *
+     * Date: 2016-08-08
+     */
     (function(window) {
       var i,
         support,
@@ -701,13 +701,13 @@
           return high !== high || escapedWhitespace
             ? escaped
             : high < 0
-              ? // BMP codepoint
-                String.fromCharCode(high + 0x10000)
-              : // Supplemental Plane codepoint (surrogate pair)
-                String.fromCharCode(
-                  (high >> 10) | 0xd800,
-                  (high & 0x3ff) | 0xdc00
-                );
+            ? // BMP codepoint
+              String.fromCharCode(high + 0x10000)
+            : // Supplemental Plane codepoint (surrogate pair)
+              String.fromCharCode(
+                (high >> 10) | 0xd800,
+                (high & 0x3ff) | 0xdc00
+              );
         },
         // CSS string/identifier serialization
         // https://drafts.csswg.org/cssom/#common-serializing-idioms
@@ -917,11 +917,11 @@
       }
 
       /**
- * Create key-value caches of limited size
- * @returns {function(string, object)} Returns the Object data after storing it on itself with
- *	property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
- *	deleting the oldest entry
- */
+       * Create key-value caches of limited size
+       * @returns {function(string, object)} Returns the Object data after storing it on itself with
+       *	property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
+       *	deleting the oldest entry
+       */
       function createCache() {
         var keys = [];
 
@@ -937,18 +937,18 @@
       }
 
       /**
- * Mark a function for special use by Sizzle
- * @param {Function} fn The function to mark
- */
+       * Mark a function for special use by Sizzle
+       * @param {Function} fn The function to mark
+       */
       function markFunction(fn) {
         fn[expando] = true;
         return fn;
       }
 
       /**
- * Support testing using an element
- * @param {Function} fn Passed the created element and returns a boolean result
- */
+       * Support testing using an element
+       * @param {Function} fn Passed the created element and returns a boolean result
+       */
       function assert(fn) {
         var el = document.createElement("fieldset");
 
@@ -967,10 +967,10 @@
       }
 
       /**
- * Adds the same handler for all of the specified attrs
- * @param {String} attrs Pipe-separated list of attributes
- * @param {Function} handler The method that will be applied
- */
+       * Adds the same handler for all of the specified attrs
+       * @param {String} attrs Pipe-separated list of attributes
+       * @param {Function} handler The method that will be applied
+       */
       function addHandle(attrs, handler) {
         var arr = attrs.split("|"),
           i = arr.length;
@@ -981,11 +981,11 @@
       }
 
       /**
- * Checks document order of two siblings
- * @param {Element} a
- * @param {Element} b
- * @returns {Number} Returns less than 0 if a precedes b, greater than 0 if a follows b
- */
+       * Checks document order of two siblings
+       * @param {Element} a
+       * @param {Element} b
+       * @returns {Number} Returns less than 0 if a precedes b, greater than 0 if a follows b
+       */
       function siblingCheck(a, b) {
         var cur = b && a,
           diff =
@@ -1012,9 +1012,9 @@
       }
 
       /**
- * Returns a function to use in pseudos for input types
- * @param {String} type
- */
+       * Returns a function to use in pseudos for input types
+       * @param {String} type
+       */
       function createInputPseudo(type) {
         return function(elem) {
           var name = elem.nodeName.toLowerCase();
@@ -1023,9 +1023,9 @@
       }
 
       /**
- * Returns a function to use in pseudos for buttons
- * @param {String} type
- */
+       * Returns a function to use in pseudos for buttons
+       * @param {String} type
+       */
       function createButtonPseudo(type) {
         return function(elem) {
           var name = elem.nodeName.toLowerCase();
@@ -1034,9 +1034,9 @@
       }
 
       /**
- * Returns a function to use in pseudos for :enabled/:disabled
- * @param {Boolean} disabled true for :disabled; false for :enabled
- */
+       * Returns a function to use in pseudos for :enabled/:disabled
+       * @param {Boolean} disabled true for :disabled; false for :enabled
+       */
       function createDisabledPseudo(disabled) {
         // Known :disabled false positives: fieldset[disabled] > legend:nth-of-type(n+2) :can-disable
         return function(elem) {
@@ -1087,9 +1087,9 @@
       }
 
       /**
- * Returns a function to use in pseudos for positionals
- * @param {Function} fn
- */
+       * Returns a function to use in pseudos for positionals
+       * @param {Function} fn
+       */
       function createPositionalPseudo(fn) {
         return markFunction(function(argument) {
           argument = +argument;
@@ -1109,10 +1109,10 @@
       }
 
       /**
- * Checks a node for validity as a Sizzle context
- * @param {Element|Object=} context
- * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
- */
+       * Checks a node for validity as a Sizzle context
+       * @param {Element|Object=} context
+       * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
+       */
       function testContext(context) {
         return (
           context &&
@@ -1125,10 +1125,10 @@
       support = Sizzle.support = {};
 
       /**
- * Detects XML nodes
- * @param {Element|Object} elem An element or a document
- * @returns {Boolean} True iff elem is a non-HTML XML node
- */
+       * Detects XML nodes
+       * @param {Element|Object} elem An element or a document
+       * @returns {Boolean} True iff elem is a non-HTML XML node
+       */
       isXML = Sizzle.isXML = function(elem) {
         // documentElement is verified for cases where it doesn't yet exist
         // (such as loading iframes in IE - #4833)
@@ -1138,10 +1138,10 @@
       };
 
       /**
- * Sets document-related variables once based on the current document
- * @param {Element|Object} [doc] An element or document object to use to set the document
- * @returns {Object} Returns the current document
- */
+       * Sets document-related variables once based on the current document
+       * @param {Element|Object} [doc] An element or document object to use to set the document
+       * @returns {Object} Returns the current document
+       */
       setDocument = Sizzle.setDocument = function(node) {
         var hasCompare,
           subWindow,
@@ -1558,14 +1558,14 @@
                 return a === document
                   ? -1
                   : b === document
-                    ? 1
-                    : aup
-                      ? -1
-                      : bup
-                        ? 1
-                        : sortInput
-                          ? indexOf(sortInput, a) - indexOf(sortInput, b)
-                          : 0;
+                  ? 1
+                  : aup
+                  ? -1
+                  : bup
+                  ? 1
+                  : sortInput
+                  ? indexOf(sortInput, a) - indexOf(sortInput, b)
+                  : 0;
 
                 // If the nodes are siblings, we can do a quick check
               } else if (aup === bup) {
@@ -1591,7 +1591,11 @@
                 ? // Do a sibling check if the nodes have a common ancestor
                   siblingCheck(ap[i], bp[i])
                 : // Otherwise nodes in our document sort first
-                  ap[i] === preferredDoc ? -1 : bp[i] === preferredDoc ? 1 : 0;
+                ap[i] === preferredDoc
+                ? -1
+                : bp[i] === preferredDoc
+                ? 1
+                : 0;
             };
 
         return document;
@@ -1660,10 +1664,10 @@
         return val !== undefined
           ? val
           : support.attributes || !documentIsHTML
-            ? elem.getAttribute(name)
-            : (val = elem.getAttributeNode(name)) && val.specified
-              ? val.value
-              : null;
+          ? elem.getAttribute(name)
+          : (val = elem.getAttributeNode(name)) && val.specified
+          ? val.value
+          : null;
       };
 
       Sizzle.escape = function(sel) {
@@ -1675,9 +1679,9 @@
       };
 
       /**
- * Document sorting and removing duplicates
- * @param {ArrayLike} results
- */
+       * Document sorting and removing duplicates
+       * @param {ArrayLike} results
+       */
       Sizzle.uniqueSort = function(results) {
         var elem,
           duplicates = [],
@@ -1708,9 +1712,9 @@
       };
 
       /**
- * Utility function for retrieving the text value of an array of DOM nodes
- * @param {Array|Element} elem
- */
+       * Utility function for retrieving the text value of an array of DOM nodes
+       * @param {Array|Element} elem
+       */
       getText = Sizzle.getText = function(elem) {
         var node,
           ret = "",
@@ -1766,8 +1770,10 @@
             match[1] = match[1].replace(runescape, funescape);
 
             // Move the given value to match[3] whether quoted or unquoted
-            match[3] = (match[3] || match[4] || match[5] || "")
-              .replace(runescape, funescape);
+            match[3] = (match[3] || match[4] || match[5] || "").replace(
+              runescape,
+              funescape
+            );
 
             if (match[2] === "~=") {
               match[3] = " " + match[3] + " ";
@@ -1894,21 +1900,21 @@
               return operator === "="
                 ? result === check
                 : operator === "!="
-                  ? result !== check
-                  : operator === "^="
-                    ? check && result.indexOf(check) === 0
-                    : operator === "*="
-                      ? check && result.indexOf(check) > -1
-                      : operator === "$="
-                        ? check && result.slice(-check.length) === check
-                        : operator === "~="
-                          ? (" " +
-                              result.replace(rwhitespace, " ") +
-                              " ").indexOf(check) > -1
-                          : operator === "|="
-                            ? result === check ||
-                              result.slice(0, check.length + 1) === check + "-"
-                            : false;
+                ? result !== check
+                : operator === "^="
+                ? check && result.indexOf(check) === 0
+                : operator === "*="
+                ? check && result.indexOf(check) > -1
+                : operator === "$="
+                ? check && result.slice(-check.length) === check
+                : operator === "~="
+                ? (" " + result.replace(rwhitespace, " ") + " ").indexOf(
+                    check
+                  ) > -1
+                : operator === "|="
+                ? result === check ||
+                  result.slice(0, check.length + 1) === check + "-"
+                : false;
             };
           },
 
@@ -2139,8 +2145,9 @@
             text = text.replace(runescape, funescape);
             return function(elem) {
               return (
-                (elem.textContent || elem.innerText || getText(elem))
-                  .indexOf(text) > -1
+                (elem.textContent || elem.innerText || getText(elem)).indexOf(
+                  text
+                ) > -1
               );
             };
           }),
@@ -2401,9 +2408,9 @@
         return parseOnly
           ? soFar.length
           : soFar
-            ? Sizzle.error(selector)
-            : // Cache the tokens
-              tokenCache(selector, groups).slice(0);
+          ? Sizzle.error(selector)
+          : // Cache the tokens
+            tokenCache(selector, groups).slice(0);
       };
 
       function toSelector(tokens) {
@@ -2862,14 +2869,14 @@
       };
 
       /**
- * A low-level selection function that works with Sizzle's compiled
- *  selector functions
- * @param {String|Function} selector A selector or a pre-compiled
- *  selector function built with Sizzle.compile
- * @param {Element} context
- * @param {Array} [results]
- * @param {Array} [seed] A set of elements to match against
- */
+       * A low-level selection function that works with Sizzle's compiled
+       *  selector functions
+       * @param {String|Function} selector A selector or a pre-compiled
+       *  selector function built with Sizzle.compile
+       * @param {Element} context
+       * @param {Array} [results]
+       * @param {Array} [seed] A set of elements to match against
+       */
       select = Sizzle.select = function(selector, context, results, seed) {
         var i,
           tokens,
@@ -3029,8 +3036,8 @@
             return elem[name] === true
               ? name.toLowerCase()
               : (val = elem.getAttributeNode(name)) && val.specified
-                ? val.value
-                : null;
+              ? val.value
+              : null;
           }
         });
       }
@@ -3486,27 +3493,27 @@
   }
 
   /*
- * Create a callback list using the following parameters:
- *
- *	options: an optional list of space-separated options that will change how
- *			the callback list behaves or a more traditional option object
- *
- * By default a callback list will act like an event callback list and can be
- * "fired" multiple times.
- *
- * Possible options:
- *
- *	once:			will ensure the callback list can only be fired once (like a Deferred)
- *
- *	memory:			will keep track of previous values and will call any callback added
- *					after the list has been fired right away with the latest "memorized"
- *					values (like a Deferred)
- *
- *	unique:			will ensure a callback can only be added once (no duplicate in the list)
- *
- *	stopOnFalse:	interrupt callings when a callback returns false
- *
- */
+   * Create a callback list using the following parameters:
+   *
+   *	options: an optional list of space-separated options that will change how
+   *			the callback list behaves or a more traditional option object
+   *
+   * By default a callback list will act like an event callback list and can be
+   * "fired" multiple times.
+   *
+   * Possible options:
+   *
+   *	once:			will ensure the callback list can only be fired once (like a Deferred)
+   *
+   *	memory:			will keep track of previous values and will call any callback added
+   *					after the list has been fired right away with the latest "memorized"
+   *					values (like a Deferred)
+   *
+   *	unique:			will ensure a callback can only be added once (no duplicate in the list)
+   *
+   *	stopOnFalse:	interrupt callings when a callback returns false
+   *
+   */
   jQuery.Callbacks = function(options) {
     // Convert options from String-formatted to Object-formatted if needed
     // (we check in cache first)
@@ -5159,9 +5166,9 @@
   }
 
   /*
- * Helper functions for managing events -- not part of the public interface.
- * Props to Dean Edwards' addEvent library for many of the ideas.
- */
+   * Helper functions for managing events -- not part of the public interface.
+   * Props to Dean Edwards' addEvent library for many of the ideas.
+   */
   jQuery.event = {
     global: {},
 
@@ -5211,7 +5218,7 @@
           // Discard the second event of a jQuery.event.trigger() and
           // when an event is called after a page has unloaded
           return typeof jQuery !== "undefined" &&
-          jQuery.event.triggered !== e.type
+            jQuery.event.triggered !== e.type
             ? jQuery.event.dispatch.apply(elem, arguments)
             : undefined;
         };
@@ -5427,9 +5434,10 @@
             event.handleObj = handleObj;
             event.data = handleObj.data;
 
-            ret = ((jQuery.event.special[handleObj.origType] || {}).handle ||
-              handleObj.handler)
-              .apply(matched.elem, args);
+            ret = (
+              (jQuery.event.special[handleObj.origType] || {}).handle ||
+              handleObj.handler
+            ).apply(matched.elem, args);
 
             if (ret !== undefined) {
               if ((event.result = ret) === false) {
@@ -6841,13 +6849,14 @@
           // Certain elements can have dimension info if we invisibly show them
           // but it must have a current display style that would benefit
           return rdisplayswap.test(jQuery.css(elem, "display")) &&
-          // Support: Safari 8+
-          // Table columns in Safari have non-zero offsetWidth & zero
-          // getBoundingClientRect().width unless display is changed.
-          // Support: IE <=11 only
-          // Running getBoundingClientRect on a disconnected node
-          // in IE throws an error.
-          (!elem.getClientRects().length || !elem.getBoundingClientRect().width)
+            // Support: Safari 8+
+            // Table columns in Safari have non-zero offsetWidth & zero
+            // getBoundingClientRect().width unless display is changed.
+            // Support: IE <=11 only
+            // Running getBoundingClientRect on a disconnected node
+            // in IE throws an error.
+            (!elem.getClientRects().length ||
+              !elem.getBoundingClientRect().width)
             ? swap(elem, cssShow, function() {
                 return getWidthOrHeight(elem, name, extra);
               })
@@ -7131,8 +7140,9 @@
 
   function createTween(value, prop, animation) {
     var tween,
-      collection = (Animation.tweeners[prop] || [])
-        .concat(Animation.tweeners["*"]),
+      collection = (Animation.tweeners[prop] || []).concat(
+        Animation.tweeners["*"]
+      ),
       index = 0,
       length = collection.length;
     for (; index < length; index++) {
@@ -8636,9 +8646,11 @@
   });
 
   jQuery.each(
-    ("blur focus focusin focusout resize scroll click dblclick " +
+    (
+      "blur focus focusin focusout resize scroll click dblclick " +
       "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
-      "change select submit keydown keypress keyup contextmenu").split(" "),
+      "change select submit keydown keypress keyup contextmenu"
+    ).split(" "),
     function(i, name) {
       // Handle event binding
       jQuery.fn[name] = function(data, fn) {
@@ -8843,20 +8855,20 @@
     rnoContent = /^(?:GET|HEAD)$/,
     rprotocol = /^\/\//,
     /* Prefilters
-	 * 1) They are useful to introduce custom dataTypes (see ajax/jsonp.js for an example)
-	 * 2) These are called:
-	 *    - BEFORE asking for a transport
-	 *    - AFTER param serialization (s.data is a string if s.processData is true)
-	 * 3) key is the dataType
-	 * 4) the catchall symbol "*" can be used
-	 * 5) execution will start with transport dataType and THEN continue down to "*" if needed
-	 */
+     * 1) They are useful to introduce custom dataTypes (see ajax/jsonp.js for an example)
+     * 2) These are called:
+     *    - BEFORE asking for a transport
+     *    - AFTER param serialization (s.data is a string if s.processData is true)
+     * 3) key is the dataType
+     * 4) the catchall symbol "*" can be used
+     * 5) execution will start with transport dataType and THEN continue down to "*" if needed
+     */
     prefilters = {},
     /* Transports bindings
-	 * 1) key is the dataType
-	 * 2) the catchall symbol "*" can be used
-	 * 3) selection will start with transport dataType and THEN go to "*" if needed
-	 */
+     * 1) key is the dataType
+     * 2) the catchall symbol "*" can be used
+     * 3) selection will start with transport dataType and THEN go to "*" if needed
+     */
     transports = {},
     // Avoid comment-prolog char sequence (#10098); must appease lint and evade compression
     allTypes = "*/".concat("*"),
@@ -8952,9 +8964,9 @@
   }
 
   /* Handles responses to an ajax request:
- * - finds the right dataType (mediates between content-type and expected dataType)
- * - returns the corresponding response
- */
+   * - finds the right dataType (mediates between content-type and expected dataType)
+   * - returns the corresponding response
+   */
   function ajaxHandleResponses(s, jqXHR, responses) {
     var ct,
       type,
@@ -9012,8 +9024,8 @@
   }
 
   /* Chain conversions given the request and the original response
- * Also sets the responseXXX fields on the jqXHR instance
- */
+   * Also sets the responseXXX fields on the jqXHR instance
+   */
   function ajaxConvert(s, response, jqXHR, isSuccess) {
     var conv2,
       current,
@@ -9447,7 +9459,7 @@
         "Accept",
         s.dataTypes[0] && s.accepts[s.dataTypes[0]]
           ? s.accepts[s.dataTypes[0]] +
-            (s.dataTypes[0] !== "*" ? ", " + allTypes + "; q=0.01" : "")
+              (s.dataTypes[0] !== "*" ? ", " + allTypes + "; q=0.01" : "")
           : s.accepts["*"]
       );
 
@@ -9856,7 +9868,7 @@
                     // IE9 has no XHR2 but throws on binary (trac-11426)
                     // For XHR2 non-text, let the caller handle it (gh-2498)
                     (xhr.responseType || "text") !== "text" ||
-                    typeof xhr.responseText !== "string"
+                      typeof xhr.responseText !== "string"
                       ? { binary: xhr.response }
                       : { text: xhr.responseText },
                     xhr.getAllResponseHeaders()
@@ -10008,8 +10020,9 @@
         (rjsonp.test(s.url)
           ? "url"
           : typeof s.data === "string" &&
-            (s.contentType || "")
-              .indexOf("application/x-www-form-urlencoded") === 0 &&
+            (s.contentType || "").indexOf(
+              "application/x-www-form-urlencoded"
+            ) === 0 &&
             rjsonp.test(s.data) &&
             "data");
 
@@ -10139,8 +10152,8 @@
   };
 
   /**
- * Load a url into a page
- */
+   * Load a url into a page
+   */
   jQuery.fn.load = function(url, params, callback) {
     var selector,
       type,
