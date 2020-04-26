@@ -15,6 +15,14 @@ from scanner.utils import save_album_cache
 __log__ = logging.getLogger(__name__)
 LOG_LEVELS = (logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG)
 
+# Attempt to get number of usable CPUs (limited by LXC/Docker/cgroups/other)
+# Only available on some UNIX platforms so fall back to number of CPUs in the system
+try:
+    NUM_CPUS = len(os.sched_getaffinity(0))
+except AttributeError:
+    NUM_CPUS = os.cpu_count()
+
+
 def all_albums(root):
     yield root
     for a in root.albums:
@@ -75,6 +83,10 @@ def main():
                         help="Where photofloat will generate thumbnails and other data (default: <ALBUM>/../cache)")
     parser.add_argument("-s", "--salt", nargs='?', type=argparse.FileType('rb'),
                         help="A file containing data to salt the image filenames with")
+    parser.add_argument("-p", "--processes", type=int, default=NUM_CPUS,
+                        help="Number of processes to use for processing photos (default {}). "\
+                             "Depending on the photo, each process can use upwards of 500MB of RAM. "\
+                             "If you find processes are being killed due to memory constraints, scale this down.".format(NUM_CPUS))
     parser.add_argument("--remove-stale", action="store_true",
                         help="Remove stale data/thumbnails from the cache (default: just list them)")
     parser.add_argument("--no-location", action="store_true",
@@ -150,8 +162,9 @@ def main():
         # Uniquify photos by hash before processing
         uniques = {mo.hash: mo for mo in all_media(root_album)}.values()
         __log__.info("[thumbing] Ensuring thumbnails exist for %s objects", len(uniques))
+        __log__.debug("[thumbing] Using %d processes for thumbnailing", config.processes)
         with log_depth():
-            with multiprocessing.Pool() as p:
+            with multiprocessing.Pool(processes=config.processes) as p:
                 p.map(generate_thumbs, uniques)
 
         remove_stale(root_album)
