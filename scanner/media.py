@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from abc import ABC
 import contextlib
 from datetime import datetime, timedelta, timezone
 import hashlib
@@ -18,6 +19,8 @@ from scanner.exiftool import ExifTool, extract_binary, single_command
 
 __log__ = logging.getLogger(__name__)
 
+# TODO: The tags, tagmap, and lambda functions need to be per-class.
+# Should pull every tag possible out of the file, then based on the mimetype pass it to the proper class for processing
 TAGS_TO_EXTRACT = (
     "EXIF:*", "Composite:*", "File:MIMEType", "File:FileType",
     "IPTC:Keywords", "PNG:CreationTime"
@@ -150,14 +153,10 @@ TAG_PROCESSORS = {
 }
 
 
-class MediaObject:
+class MediaObject(ABC):
     def __init__(self, path, attributes):
         self._path = path
         self._attributes = attributes
-
-        # Note that these are generated in sequence by continually modifying the same
-        # buffer. Ex: 1600 -> 1024 -> 150 will work. The reverse won't.
-        self.thumb_data = [(1024, 85, False), (150, 70, True)]
 
     # Sort by date (old -> new), then alphabetical
     @property
@@ -193,12 +192,13 @@ class MediaObject:
 
     @property
     def thumbs(self):
-        return (image_cache(self.hash, size) for size, _, _ in self.thumb_data)
+        # Size is always first, extension is always last
+        return (image_cache(self.hash, data[0], data[-1]) for data in self.thumb_data)
 
     @property
     def thumb_sizes(self):
         # Normal order is big -> small, return it reversed
-        return [size or "full" for size, _, _ in reversed(self.thumb_data)]
+        return [x[0] or "full" for x in reversed(self.thumb_data)]
 
     def thumbs_exist(self):
         """Check if all thumbnails exist and are new enough"""
@@ -277,6 +277,10 @@ class Photo(MediaObject):
     def __init__(self, path, attributes):
         super().__init__(path, attributes)
 
+        # Note that these are generated in sequence by continually modifying the same
+        # buffer. Ex: 1600 -> 1024 -> 150 will work. The reverse won't.
+        self.thumb_data = [(1024, 85, False, "jpg"), (150, 70, True, "jpg")]
+
         # Taken sideways, invert the dimensions
         orientation = self._attributes.get("orientation", "")
         if "90" in orientation or "270" in orientation:
@@ -289,8 +293,8 @@ class Photo(MediaObject):
         except WandException as e:
             __log__.error("[error] Failed to load image: %s", e, exc_info=True)
             return
-        for (size, quality, square) in self.thumb_data:
-            path = image_cache(self.hash, size)
+        for size, quality, square, ext in self.thumb_data:
+            path = image_cache(self.hash, size, ext)
             try:
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, 'wb') as fp:
@@ -322,7 +326,7 @@ class RawPhoto(Photo):
         super().__init__(*args, *kwargs)
 
         # Generate a full-size jpeg preview
-        self.thumb_data.insert(0, (None, 95, False))
+        self.thumb_data.insert(0, (None, 95, False, "jpg"))
 
     def generate_thumbs(self):
         """Generate thumbnails for this RawPhoto
@@ -383,6 +387,77 @@ class RawPhoto(Photo):
             __log__.info("[thumbing] Preview of raw file %s", self.name)
             self.generate_thumbs_from_path(fp.name)
 
+class Video(MediaObject):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Shortest width, CRF, is_thumbnail
+        self.thumb_data = [(480, 25, False, "mp4"), (150, 30, True, "mp4")]
+
+        print(self._attributes)
+
+
+    def generate_thumbs(self):
+        """Generate thumbnails for this Photo"""
+        # TODO: Pick smallest of 30 and input framerate
+        if self.thumbs_exist():
+            __log__.debug("[exists] %s", self.name)
+            return
+
+        __log__.info("[encoding] video '%s'", self.name)
+
+        # Create an ffmpeg command that will create all the required files
+        cmd = ["ffmpeg", "-y", "-i", self._path, "-filter_complex"]
+
+        # Defining the filter(s) to use
+        filter_complex = []
+        # Filters for all outputs
+        # TODO: brings fps up to 30...
+        filter_complex.append("[0:v]minterpolate='fps=30:mi_mode=blend'[in]")
+
+        # Split the stream into multiple pipelines
+        n = len(self.thumb_data)
+        filter_complex.append("[in] split={} {}".format(n, "".join("[in{}]".format(x) for x in range(n))))
+
+        # Create specific filter pipelines for each output
+        filters = []
+        for i, (size, _, thumbnail, _) in enumerate(self.thumb_data):
+            # Scale the video down (keep aspect ratio) to 480px on it's shortest
+            # side (or keep the dimensions if it's smaller). Make sure that the
+            # dimensions are always divisible by 2 (requirement of h.264).
+            filters.append("scale='if(gt(iw, ih),-2,min(iw+mod(iw,2),{0}))':'if(gt(iw,ih),min(ih+mod(ih,2),{0}),-2)':flags=bicubic".format(size))
+            if thumbnail:
+                # Creating a thumbnail, crop the video to square and play at 2x
+                filters.append("crop={0}:{0}".format(size))
+                filters.append("setpts={}*PTS".format(1/2))
+            # Push in-N -> ','-separated configured filters -> out-N
+            filter_complex.append("[in{0}]{1}[out{0}]".format(i, ",".join(filters)))
+        # filter_complex sections are split by a ';'
+        cmd.append(";".join(filter_complex))
+
+        # Encoding section
+        for i, (size, crf, thumbnail, ext) in enumerate(self.thumb_data):
+            cmd.extend(["-map", "[out{}]".format(i)])
+            if thumbnail:
+                # Only take the first 3 seconds of video for a thumbnail
+                cmd.extend(["-t", "3"])
+            # Encode the video
+            cmd.extend(["-c:v", "libx264", "-preset", "slow", "-pix_fmt", "yuv420p", "-crf", str(crf)])
+            if not thumbnail:
+                # Add in audio (transcoded to AAC @ 160KB/s)
+                cmd.extend(["-map", "0:a", "-c:a", "aac", "-b:a", "160k"])
+            # Output format and path
+            out_path = image_cache(self.hash, size, ext)
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+            cmd.extend(["-f", ext, out_path])
+        import subprocess
+        try:
+            subprocess.run(cmd, check=True, capture_output=True)
+        except Exception as e:
+            print(e.cmd)
+            print(e.stdout)
+            print(e.stderr)
+
 
 MIMETYPE_MAP = {
     "image": {
@@ -403,6 +478,7 @@ MIMETYPE_MAP = {
         "x-sony-arw": RawPhoto,
         "x-sony-sr2": RawPhoto,
     },
+    "video": { "*": Video }
 }
 
 def _get_file_hash(path):
@@ -474,7 +550,7 @@ def _extract_file_metadata(path):
         data["timezone"] = roundto(offset.total_seconds()/3600, nearest=0.25)
     return data
 
-def image_cache(img_hash, size):
+def image_cache(img_hash, size, ext):
     """Use the hash to name the file
 
     Output file under the cache will be:
@@ -482,4 +558,4 @@ def image_cache(img_hash, size):
     """
     if size is None:
         size = "full"
-    return os.path.join(scanner.globals.CONFIG.cache, "thumbs", img_hash[:2], "{}_{}.jpg".format(img_hash[2:], size))
+    return os.path.join(scanner.globals.CONFIG.cache, "thumbs", img_hash[:2], "{}_{}.{}".format(img_hash[2:], size, ext))

@@ -34,7 +34,7 @@ $(document).ready(function() {
     var n = media.previews.length;
     for (var i = 0; i < n; i++) {
       var c = media.previews[i];
-      if (c != "full" && c >= 100 && c < 500) {
+      if (c != "full" && c >= 100 && c < 400) {
         return c;
       }
     }
@@ -68,6 +68,16 @@ $(document).ready(function() {
     // zeroPad(4, 5) -> "00004"
     var pad = new Array(1 + len).join("0");
     return (pad + num).slice(-pad.length);
+  }
+
+  function getType(media) {
+    return media.mimeType.split("/")[0];
+  }
+
+  function unloadVideo() {
+    var v = $("#video");
+    v.removeAttr("src")[0].load();
+    return v;
   }
 
   /* Displays */
@@ -146,112 +156,139 @@ $(document).ready(function() {
       thumb.addClass("current-thumb");
     }
   }
+
+  function populateImage(media) {}
+  function populateVideo(media) {}
+
+  function makeMediaThumbnail(album, media) {
+    // Create the image with the placeholder and swap to the real one once it loads
+    var link = $("<a>")
+      .attr("href", "/view/" + photoFloat.photoHash(currentAlbum, media))
+      .append(
+        $("<div>")
+          .addClass("thumbnail")
+          .addClass("media")
+      );
+
+    var title = photoFloat.trimExtension(media.name);
+    var size = getThumbnailSize(media);
+
+    // TODO: same as the the replaceWith below, clone all attrs
+    var item;
+    if (getType(media) == "video") {
+      item = $("<video loop autoplay muted>");
+    } else {
+      item = $("<img>").attr("src", placeholderImage);
+    }
+    item
+      .attr("title", title)
+      .attr("alt", title)
+      .attr("height", size)
+      .attr("width", size);
+    item.appendTo($(".media", link));
+    (function(theLink, theImage, theAlbum, theMedia) {
+      var img, evt;
+      // Load image/video into the cache and replace it when it loads
+      if (getType(media) == "image") {
+        img = $("<img>");
+        event = "load";
+      } else {
+        img = $("<video>");
+        event = "loadeddata";
+      }
+      img.on(event, function() {
+        theImage.attr("src", img.attr("src"));
+      });
+      img.on("error", function(e) {
+        theLink.remove();
+        photoFloat.removePhoto(theMedia, theAlbum);
+      });
+      img.attr(
+        "src",
+        photoFloat.photoPath(theAlbum, theMedia, getThumbnailSize(theMedia))
+      );
+    })(link, item, currentAlbum, media);
+
+    return link;
+  }
+
+  function makeAlbumThumbnail(parent, album) {
+    var link = $("<a>")
+      .attr("href", "/view/" + photoFloat.albumHash(album))
+      .append(
+        $("<div>")
+          .addClass("thumbnail")
+          .addClass("album")
+          .append($("<p>").html(album.path))
+      );
+    var item = $("<img>").attr("src", placeholderImage);
+
+    item.prependTo($(".album", link));
+    (function(theParent, theAlbum, theImage, theLink) {
+      function callback(album, photo) {
+        var img, evt;
+        // Load image/video into the cache and replace it when it loads
+        if (getType(photo) == "image") {
+          img = $("<img>");
+          img.on("load", function() {
+            theImage.replaceWith(
+              $("<img>")
+                .attr("src", img.attr("src"))
+                .attr("title", formatDate(album.date))
+            );
+          });
+        } else {
+          img = $("<video>");
+          img.on("loadeddata", function() {
+            theImage.replaceWith(
+              $("<video loop autoplay muted playsinline>")
+                .attr("src", img.attr("src"))
+                .attr("type", "video/mp4")
+                .attr("title", formatDate(album.date))
+            );
+          });
+        }
+        img.onerror = function() {
+          // Remove failed image from album data and try again
+          photoFloat.removePhoto(photo, album);
+          photoFloat.albumPhoto(theAlbum, callback, error);
+        };
+        img.attr(
+          "src",
+          photoFloat.photoPath(album, photo, getThumbnailSize(photo))
+        );
+      }
+      function error() {
+        theLink.remove();
+        photoFloat.removeAlbum(theAlbum, theParent);
+      }
+      photoFloat.albumPhoto(theAlbum, callback, error);
+    })(parent, album, item, link);
+    return link;
+  }
+
   function showAlbum(populate) {
-    var i, link, image, photos, thumbsElement, subalbums, subalbumsElement;
     if (currentPhoto === null && previousPhoto === null)
       $("html, body")
         .stop()
         .animate({ scrollTop: 0 }, "slow");
 
     if (populate) {
-      photos = [];
-      for (var i = 0; i < currentAlbum.media.length; ++i) {
-        link = $(
-          '<a href="/view/' +
-            photoFloat.photoHash(currentAlbum, currentAlbum.media[i]) +
-            '"></a>'
-        );
-
-        // Create the image with the placeholder and swap to the real one once it loads
-        media = currentAlbum.media[i];
-        image = $(
-          '<img title="' +
-            photoFloat.trimExtension(media.name) +
-            '"' +
-            'alt="' +
-            photoFloat.trimExtension(media.name) +
-            '"' +
-            'src="' +
-            placeholderImage +
-            '" height="' +
-            getThumbnailSize(media) +
-            '" width="' +
-            getThumbnailSize(media) +
-            '" />'
-        );
-        image.get(0).photo = media;
-        link.append(image);
-        photos.push(link);
-        (function(theLink, theImage, theAlbum) {
-          var img = new Image();
-          img.onload = function() {
-            theImage.attr("src", img.src);
-          };
-          img.onerror = function() {
-            photos.splice(photos.indexOf(theLink), 1);
-            theLink.remove();
-            theAlbum.media.splice(
-              theAlbum.media.indexOf(theImage.get(0).photo),
-              1
-            );
-          };
-          img.src = photoFloat.photoPath(
-            theAlbum,
-            theAlbum.media[i],
-            getThumbnailSize(theAlbum.media[i])
-          );
-        })(link, image, currentAlbum);
-      }
-      thumbsElement = $("#thumbs");
+      var thumbsElement = $("#thumbs");
       thumbsElement.empty();
-      thumbsElement.append.apply(thumbsElement, photos);
-
-      subalbums = [];
-      for (var i = 0; i < currentAlbum.albums.length; ++i) {
-        link = $(
-          '<a href="/view/' +
-            photoFloat.albumHash(currentAlbum.albums[i]) +
-            '"></a>'
+      for (var i = 0; i < currentAlbum.media.length; ++i) {
+        thumbsElement.append(
+          makeMediaThumbnail(currentAlbum, currentAlbum.media[i])
         );
-        image = $("<div>" + currentAlbum.albums[i].path + "</div>")
-          .addClass("album-button")
-          .attr("title", formatDate(currentAlbum.albums[i].date));
-        link.append(image);
-        subalbums.push(link);
-        (function(theContainer, theAlbum, theImage, theLink) {
-          photoFloat.albumPhoto(
-            theAlbum,
-            function(album, photo) {
-              // Only set the background-image once it has finished loading
-              var img = new Image();
-              img.onload = function() {
-                theImage.css("background-image", "url(" + img.src + ")");
-              };
-              img.onerror = function() {
-                // Remove failed image from album data
-                album.media.splice(album.media.indexOf(photo), 1);
-                //TODO: Try next image in album?
-              };
-              img.src = photoFloat.photoPath(
-                album,
-                photo,
-                getThumbnailSize(photo)
-              );
-            },
-            function error() {
-              theContainer.albums.splice(
-                currentAlbum.albums.indexOf(theAlbum),
-                1
-              );
-              theLink.remove();
-              subalbums.splice(subalbums.indexOf(theLink), 1);
-            }
-          );
-        })(currentAlbum, currentAlbum.albums[i], image, link);
       }
-      subalbumsElement = $("#subalbums");
+
+      var subalbumsElement = $("#subalbums");
       subalbumsElement.empty();
-      subalbumsElement.append.apply(subalbumsElement, subalbums);
+      for (var i = 0; i < currentAlbum.albums.length; ++i) {
+        subalbumsElement.append(
+          makeAlbumThumbnail(currentAlbum, currentAlbum.albums[i])
+        );
+      }
       subalbumsElement.insertBefore(thumbsElement);
     }
 
@@ -260,6 +297,8 @@ $(document).ready(function() {
       $("#album-view").removeClass("photo-view-container");
       $("#subalbums").show();
       $("#photo-view").hide();
+      $("#media").hide();
+      unloadVideo();
     }
     setTimeout(scrollToThumb, 1);
   }
@@ -268,21 +307,15 @@ $(document).ready(function() {
       return;
     }
 
-    var image = $("#photo");
-    var container;
-    if (image.hasClass("fullScreen")) {
-      container = $(document);
-    } else {
-      container = $("#photo-view");
-    }
-
+    var media = $(getType(currentPhoto) == "video" ? "#video" : "#photo");
+    var container = $("#media");
     var ir = currentPhoto.size[0] / currentPhoto.size[1];
     var cw = container.width();
     var ch = container.height();
     if (ir > cw / ch) {
-      image.css("width", "100%").css("height", "auto");
+      media.css("width", "100%").css("height", "auto");
     } else {
-      image.css("width", "auto").css("height", "100%");
+      media.css("width", "auto").css("height", "100%");
     }
   }
   function showPhoto() {
@@ -306,24 +339,36 @@ $(document).ready(function() {
       $("#jpg-link").hide();
     }
 
-    thumbPath = photoFloat.photoPath(
+    thumbSrc = photoFloat.photoPath(
       currentAlbum,
       currentPhoto,
       getThumbnailSize(currentPhoto)
     );
-    image = $("#photo");
-    image
-      .css("opacity", "")
-      .attr("alt", currentPhoto.name)
-      .attr("title", formatDate(currentPhoto.date))
-      .attr("src", thumbPath);
-    image
-      .attr("src", photoSrc)
-      .on("load", scaleImage)
-      .on("error", function() {
-        image.attr("src", thumbPath).css("opacity", "0.50");
-      });
-    $("head").append('<link rel="image_src" href="' + photoSrc + '" />');
+    if (getType(currentPhoto) == "video") {
+      $("#video").show();
+      $("#photo").hide();
+
+      media = $("#video");
+      media.attr("src", photoSrc).on("loadeddata", scaleImage);
+    } else {
+      unloadVideo().hide();
+      $("#photo").show();
+
+      image = $("#photo");
+      image
+        .css("opacity", "")
+        .attr("alt", currentPhoto.name)
+        .attr("title", formatDate(currentPhoto.date))
+        .attr("src", thumbSrc);
+      image
+        .attr("src", photoSrc)
+        .on("load", scaleImage)
+        .on("error", function() {
+          image.attr("src", thumbSrc).css("opacity", "0.50");
+        });
+      $("head").append('<link rel="image_src" href="' + photoSrc + '" />');
+    }
+    $("#media").show();
 
     previousPhoto =
       currentAlbum.media[
@@ -575,7 +620,7 @@ $(document).ready(function() {
     $("#fullscreen")
       .show()
       .click(function() {
-        $("#photo").fullScreen({
+        $("#media").fullScreen({
           callback: function(isFullscreen) {
             fullscreen = isFullscreen;
             showPhoto();

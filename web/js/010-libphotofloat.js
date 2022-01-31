@@ -6,19 +6,21 @@
 
   /* public member functions */
   PhotoFloat.prototype.album = function(subalbum, callback, error) {
-    var cacheKey, ajaxOptions, self;
+    var cacheKey, ajaxOptions, self, parent;
     if (typeof subalbum.media !== "undefined" && subalbum.media !== null) {
       callback(subalbum);
       return;
     }
-    if (Object.prototype.toString.call(subalbum).slice(8, -1) === "String")
+    if (Object.prototype.toString.call(subalbum).slice(8, -1) === "String") {
       cacheKey = subalbum;
-    else
-      cacheKey = PhotoFloat.cachePath(
-        subalbum.parent.path + "/" + subalbum.path
-      );
+      parent = null;
+    } else {
+      parent = subalbum.parent;
+      cacheKey = PhotoFloat.cachePath(parent.path + "/" + subalbum.path);
+    }
     if (this.albumCache.hasOwnProperty(cacheKey)) {
-      callback(this.albumCache[cacheKey]);
+      album = this.albumCache[cacheKey];
+      callback(album);
       return;
     }
     self = this;
@@ -27,11 +29,13 @@
       dataType: "json",
       url: "/cache/" + cacheKey + ".json",
       success: function(album) {
-        var i;
         for (var i = 0; i < album.albums.length; ++i)
           album.albums[i].parent = album;
         for (var i = 0; i < album.media.length; ++i)
           album.media[i].parent = album;
+        if (parent != null) {
+          album.parent = parent;
+        }
         self.albumCache[cacheKey] = album;
         callback(album);
       }
@@ -52,15 +56,42 @@
       if (album.media.length > 0) {
         // Take the oldest photo in the album (first photo shown)
         callback(album, album.media[0]);
-      } else {
+      } else if (album.albums.length > 0) {
         // Delegate picking thumb to newest subalbum (first one shown)
         self.album(album.albums[0], nextAlbum, error);
+      } else {
+        // No photos or subalbums (empty)
+        error();
       }
     };
     if (typeof subalbum.media !== "undefined" && subalbum.media !== null)
       nextAlbum(subalbum);
     else this.album(subalbum, nextAlbum, error);
   };
+
+  PhotoFloat.prototype.removePhoto = function(photo, album) {
+    album = typeof album !== "undefined" ? album : photo.parent;
+    if (typeof album === "undefined") {
+      return;
+    }
+    idx = album.media.indexOf(photo);
+    if (idx !== -1) album.media.splice(idx, 1);
+    if (album.media.length == 0 && album.albums.length == 0) {
+      this.removeAlbum(album);
+    }
+  };
+  PhotoFloat.prototype.removeAlbum = function(album, parent) {
+    parent = typeof parent !== "undefined" ? parent : album.parent;
+    if (typeof parent === "undefined") {
+      return;
+    }
+    idx = parent.albums.indexOf(album);
+    if (idx !== -1) parent.albums.splice(idx, 1);
+    if (parent.media.length == 0 && parent.albums.length == 0) {
+      this.removeAlbum(parent);
+    }
+  };
+
   PhotoFloat.prototype.parseLocation = function(location, callback, error) {
     var index, album, photo;
     path = location.pathname;
@@ -144,6 +175,10 @@
     return PhotoFloat.cachePath(album.parent.path + "/" + album.path);
   };
   PhotoFloat.photoPath = function(album, photo, size) {
+    var ext = "jpg";
+    if (photo.mimeType.split("/")[0] === "video") {
+      ext = "mp4";
+    }
     return (
       "/cache/thumbs/" +
       photo.hash.slice(0, 2) +
@@ -151,7 +186,8 @@
       photo.hash.slice(2) +
       "_" +
       size.toString() +
-      ".jpg"
+      "." +
+      ext
     );
   };
   PhotoFloat.originalPhotoPath = function(album, photo) {

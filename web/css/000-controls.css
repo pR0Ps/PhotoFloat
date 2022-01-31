@@ -44,17 +44,21 @@ a:hover {
 #subalbums {
   padding-top: 1.5em;
 }
-.album-button {
+.thumbnail {
   float: left;
   display: block;
+  padding-bottom: 10px;
   width: 150px;
-  height: 60px;
+}
+.thumbnail img,
+video {
+  height: 150px;
+  width: 150px;
+}
+.album p {
   text-align: center;
-  font-size: 12px;
-  background-repeat: no-repeat;
-  background-position: top;
-  padding-top: 150px;
-  background-image: url(/assets/loading.gif);
+  font-size: 14px;
+  margin-top: 0;
 }
 
 #next,
@@ -75,9 +79,12 @@ a:hover {
 #next {
   right: 0.1em;
 }
-#photo {
+#media {
   border: 0;
   left: 0;
+  height: 100%;
+  width: 100%;
+  display: none;
 }
 #photo-view {
   position: absolute;
